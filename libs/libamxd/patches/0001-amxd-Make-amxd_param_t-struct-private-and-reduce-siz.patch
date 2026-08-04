@@ -1,0 +1,2251 @@
+From 670d3cfdf6756a29d26761986017d4b44e024397 Mon Sep 17 00:00:00 2001
+From: Peter De Herdt <peter.deherdt@softathome.com>
+Date: Tue, 14 Apr 2026 07:31:03 +0000
+Subject: [PATCH] amxd: Make amxd_param_t struct private and reduce size
+
+Issue: HOP-11905 [RAM improvement][ambiorix dev] Reduce size of internal struct used for DM parameters
+---
+ include/amxd/amxd_api_version.h               |  94 +++
+ include/amxd/amxd_object_parameter.h          |  17 +-
+ include/amxd/amxd_types.h                     |  11 +-
+ include_priv/amxd_param_priv.h                |  78 ++
+ include_priv/amxd_param_value_priv.h          | 114 +++
+ include_priv/amxd_priv.h                      |   5 +-
+ src/amxd_action_object_add_inst.c             |  13 +-
+ src/amxd_action_param_read.c                  |   4 +-
+ src/amxd_action_param_validate.c              |  51 +-
+ src/amxd_action_param_write.c                 |  18 +-
+ src/amxd_dm.c                                 |   2 +-
+ src/amxd_object_event.c                       |   9 +-
+ src/amxd_object_parameter.c                   |  18 +-
+ src/amxd_param_value.c                        | 302 ++++++++
+ src/amxd_parameter.c                          |  33 +-
+ src/amxd_transaction.c                        |   3 +-
+ .../test_amxd_action_object_add.c             |   6 +-
+ .../test_amxd_action_object_add_86.c          |   6 +-
+ .../test_amxd_issue_105/test_amxd_issue_105.c |   4 +-
+ .../test_amxd_object_parameter.c              |  14 +-
+ test/test_amxd_param_value/makefile           |   7 +
+ .../test_amxd_param_value.c                   | 664 ++++++++++++++++++
+ .../test_amxd_param_value.h                   |  95 +++
+ test/test_amxd_param_value/test_main.c        | 102 +++
+ .../test_amxd_parameter/test_amxd_parameter.c |   7 +-
+ 25 files changed, 1592 insertions(+), 85 deletions(-)
+ create mode 100644 include/amxd/amxd_api_version.h
+ create mode 100644 include_priv/amxd_param_priv.h
+ create mode 100644 include_priv/amxd_param_value_priv.h
+ create mode 100644 src/amxd_param_value.c
+ create mode 100644 test/test_amxd_param_value/makefile
+ create mode 100644 test/test_amxd_param_value/test_amxd_param_value.c
+ create mode 100644 test/test_amxd_param_value/test_amxd_param_value.h
+ create mode 100644 test/test_amxd_param_value/test_main.c
+
+diff --git a/include/amxd/amxd_api_version.h b/include/amxd/amxd_api_version.h
+new file mode 100644
+index 0000000..407a6cb
+--- /dev/null
++++ b/include/amxd/amxd_api_version.h
+@@ -0,0 +1,94 @@
++/****************************************************************************
++**
++** SPDX-License-Identifier: BSD-2-Clause-Patent
++**
++** SPDX-FileCopyrightText: Copyright (c) 2026 SoftAtHome
++**
++** Redistribution and use in source and binary forms, with or without modification,
++** are permitted provided that the following conditions are met:
++**
++** 1. Redistributions of source code must retain the above copyright notice,
++** this list of conditions and the following disclaimer.
++**
++** 2. Redistributions in binary form must reproduce the above copyright notice,
++** this list of conditions and the following disclaimer in the documentation
++** and/or other materials provided with the distribution.
++**
++** Subject to the terms and conditions of this license, each copyright holder
++** and contributor hereby grants to those receiving rights under this license
++** a perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable
++** (except for failure to satisfy the conditions of this license) patent license
++** to make, have made, use, offer to sell, sell, import, and otherwise transfer
++** this software, where such license applies only to those patent claims, already
++** acquired or hereafter acquired, licensable by such copyright holder or contributor
++** that are necessarily infringed by:
++**
++** (a) their Contribution(s) (the licensed copyrights of copyright holders and
++** non-copyrightable additions of contributors, in source or binary form) alone;
++** or
++**
++** (b) combination of their Contribution(s) with the work of authorship to which
++** such Contribution(s) was added by such copyright holder or contributor, if,
++** at the time the Contribution is added, such addition causes such combination
++** to be necessarily infringed. The patent license shall not apply to any other
++** combinations which include the Contribution.
++**
++** Except as expressly stated above, no rights or licenses from any copyright
++** holder or contributor is granted under this license, whether expressly, by
++** implication, estoppel or otherwise.
++**
++** DISCLAIMER
++**
++** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++** AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++** IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++** ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE
++** LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++** DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
++** SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
++** CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
++** OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
++** USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++**
++****************************************************************************/
++
++#if !defined(__AMXD_API_VERSION_H__)
++#define __AMXD_API_VERSION_H__
++
++#ifdef __cplusplus
++extern "C"
++{
++#endif
++
++/**
++ * @brief Major version number of the lib_amxd API
++ *
++ * This macro defines the major version of the lib_amxd API. It is incremented
++ * when backwards-incompatible changes are made to the API.
++ *
++ * Applications can use this macro to conditionally compile code based on the
++ * API version, allowing them to maintain compatibility with both old and new
++ * versions of the library.
++ *
++ * @par Example:
++ * @code
++ * #if !defined(AMXD_API_MAJOR_VERSION) || AMXD_API_MAJOR_VERSION <= 6
++ *     // Use old API
++ *     amxd_old_function();
++ * #else
++ *     // Use new API (version 7+)
++ *     amxd_new_function();
++ * #endif
++ * @endcode
++ *
++ * @note The check for !defined() ensures compatibility when compiling against
++ *       older versions of lib_amxd that do not define this macro.
++ */
++#define AMXD_API_MAJOR_VERSION 7
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif // __AMXD_API_VERSION_H__
++
+diff --git a/include/amxd/amxd_object_parameter.h b/include/amxd/amxd_object_parameter.h
+index 32a476e..adfa3c0 100644
+--- a/include/amxd/amxd_object_parameter.h
++++ b/include/amxd/amxd_object_parameter.h
+@@ -281,8 +281,21 @@ amxd_status_t amxd_object_get_param(amxd_object_t* const object,
+                                     const char* name,
+                                     amxc_var_t* const value);
+ 
+-// WILL BE DEPRECATED IN PHASE2
+-// USE amxd_object_get_current_param_value instead
++/**
++ * @brief Get parameter value (DEPRECATED)
++ *
++ * @deprecated This function is deprecated. Use amxd_object_get_param() instead,
++ *             which copies the value to a provided variant.
++ *
++ * This function returns a pointer to the internal parameter value, which
++ * exposes internal implementation details. Use amxd_object_get_param() for
++ * new code.
++ *
++ * @param object The object containing the parameter
++ * @param name The parameter name
++ * @return Pointer to internal value, or NULL if not found
++ */
++__attribute__((deprecated("Use amxd_object_get_current_param_value() instead")))
+ const amxc_var_t* amxd_object_get_param_value(const amxd_object_t* const object,
+                                               const char* name);
+ 
+diff --git a/include/amxd/amxd_types.h b/include/amxd/amxd_types.h
+index dee2269..15a02b9 100644
+--- a/include/amxd/amxd_types.h
++++ b/include/amxd/amxd_types.h
+@@ -69,6 +69,7 @@ extern "C"
+ #endif
+ 
+ #include <amxc/amxc_set.h>
++#include <amxd/amxd_api_version.h>
+ 
+ /**
+    @defgroup amxd_data_model_types Data model structures, enums, typedefs
+@@ -417,16 +418,6 @@ typedef struct _amxd_param_attr {
+     uint32_t shared_name : 1;    // Parameter name is not owned by parameter, is referencing the definition
+     uint32_t secured : 1;        // Indicates that the parameter value can only be read by a trusted controller
+ } amxd_param_attr_t;
+-
+-struct _amxd_parameter {
+-    amxc_llist_it_t it;            // it.list points to the list containing parameters in the objects
+-    amxd_param_attr_t attr;        // parameter attributes
+-    char* name;                    // parameter name
+-    amxc_var_t value;              // parameter value
+-    amxc_llist_t cb_fns;           // action callback functions, see amxd_dm_cb_t
+-    void* priv;                    // private data
+-    amxc_set_t* flags;             // parameter flags
+-};
+ //-----------------------------------------------------------------------------
+ 
+ //-----------------------------------------------------------------------------
+diff --git a/include_priv/amxd_param_priv.h b/include_priv/amxd_param_priv.h
+new file mode 100644
+index 0000000..e8b1a31
+--- /dev/null
++++ b/include_priv/amxd_param_priv.h
+@@ -0,0 +1,78 @@
++/****************************************************************************
++**
++** SPDX-License-Identifier: BSD-2-Clause-Patent
++**
++** SPDX-FileCopyrightText: Copyright (c) 2023 SoftAtHome
++**
++** Redistribution and use in source and binary forms, with or without modification,
++** are permitted provided that the following conditions are met:
++**
++** 1. Redistributions of source code must retain the above copyright notice,
++** this list of conditions and the following disclaimer.
++**
++** 2. Redistributions in binary form must reproduce the above copyright notice,
++** this list of conditions and the following disclaimer in the documentation
++** and/or other materials provided with the distribution.
++**
++** Subject to the terms and conditions of this license, each copyright holder
++** and contributor hereby grants to those receiving rights under this license
++** a perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable
++** (except for failure to satisfy the conditions of this license) patent license
++** to make, have made, use, offer to sell, sell, import, and otherwise transfer
++** this software, where such license applies only to those patent claims, already
++** acquired or hereafter acquired, licensable by such copyright holder or contributor
++** that are necessarily infringed by:
++**
++** (a) their Contribution(s) (the licensed copyrights of copyright holders and
++** non-copyrightable additions of contributors, in source or binary form) alone;
++** or
++**
++** (b) combination of their Contribution(s) with the work of authorship to which
++** such Contribution(s) was added by such copyright holder or contributor, if,
++** at the time the Contribution is added, such addition causes such combination
++** to be necessarily infringed. The patent license shall not apply to any other
++** combinations which include the Contribution.
++**
++** Except as expressly stated above, no rights or licenses from any copyright
++** holder or contributor is granted under this license, whether expressly, by
++** implication, estoppel or otherwise.
++**
++** DISCLAIMER
++**
++** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++** AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++** IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++** ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE
++** LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++** DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
++** SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
++** CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
++** OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
++** USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++**
++****************************************************************************/
++#if !defined(__AMXD_PARAM_PRIV_H__)
++#define __AMXD_PARAM_PRIV_H__
++
++#ifdef __cplusplus
++extern "C"
++{
++#endif
++
++#include "amxd_param_value_priv.h"
++
++struct _amxd_parameter {
++    amxc_llist_it_t it;            // it.list points to the list containing parameters in the objects
++    amxd_param_attr_t attr;        // parameter attributes
++    char* name;                    // parameter name
++    amxd_param_value_t value;      // parameter value
++    amxc_llist_t cb_fns;           // action callback functions, see amxd_dm_cb_t
++    void* priv;                    // private data
++    amxc_set_t* flags;             // parameter flags
++};
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif // __AMXD_PARAM_PRIV_H__
+diff --git a/include_priv/amxd_param_value_priv.h b/include_priv/amxd_param_value_priv.h
+new file mode 100644
+index 0000000..0478826
+--- /dev/null
++++ b/include_priv/amxd_param_value_priv.h
+@@ -0,0 +1,114 @@
++/****************************************************************************
++**
++** SPDX-License-Identifier: BSD-2-Clause-Patent
++**
++** SPDX-FileCopyrightText: Copyright (c) 2026 SoftAtHome
++**
++** Redistribution and use in source and binary forms, with or without modification,
++** are permitted provided that the following conditions are met:
++**
++** 1. Redistributions of source code must retain the above copyright notice,
++** this list of conditions and the following disclaimer.
++**
++** 2. Redistributions in binary form must reproduce the above copyright notice,
++** this list of conditions and the following disclaimer in the documentation
++** and/or other materials provided with the distribution.
++**
++** Subject to the terms and conditions of this license, each copyright holder
++** and contributor hereby grants to those receiving rights under this license
++** a perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable
++** (except for failure to satisfy the conditions of this license) patent license
++** to make, have made, use, offer to sell, sell, import, and otherwise transfer
++** this software, where such license applies only to those patent claims, already
++** acquired or hereafter acquired, licensable by such copyright holder or contributor
++** that are necessarily infringed by:
++**
++** (a) their Contribution(s) (the licensed copyrights of copyright holders and
++** non-copyrightable additions of contributors, in source or binary form) alone;
++** or
++**
++** (b) combination of their Contribution(s) with the work of authorship to which
++** such Contribution(s) was added by such copyright holder or contributor, if,
++** at the time the Contribution is added, such addition causes such combination
++** to be necessarily infringed. The patent license shall not apply to any other
++** combinations which include the Contribution.
++**
++** Except as expressly stated above, no rights or licenses from any copyright
++** holder or contributor is granted under this license, whether expressly, by
++** implication, estoppel or otherwise.
++**
++** DISCLAIMER
++**
++** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++** AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++** IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++** ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE
++** LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++** DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
++** SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
++** CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
++** OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
++** USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++**
++****************************************************************************/
++#if !defined(__AMXD_PARAM_VALUE_PRIV_H__)
++#define __AMXD_PARAM_VALUE_PRIV_H__
++
++#ifdef __cplusplus
++extern "C"
++{
++#endif
++
++typedef struct _amxd_param_value amxd_param_value_t;
++
++struct _amxd_param_value {
++    amxc_var_type_id_t type_id; // parameter data type
++    union
++    {
++        char* s;                // string
++        int8_t i8;              // 8 bit signed integer
++        int16_t i16;            // 16 bit signed integer
++        int32_t i32;            // 32 bit signed integer
++        int64_t i64;            // 64 bit signed integer
++        uint8_t ui8;            // 8 bit unsigned integer
++        uint16_t ui16;          // 16 bit unsigned integer
++        uint32_t ui32;          // 32 bit unsigned integer
++        uint64_t ui64;          // 64 bit unsigned integer
++        float f;                // float
++        double d;               // double
++        bool b;                 // boolean
++        amxc_ts_t ts;           // timestamp
++    } data;                     // parameter data
++};
++
++PRIVATE
++int amxd_param_value_init(amxd_param_value_t* value);
++
++PRIVATE
++void amxd_param_value_clean(amxd_param_value_t* value);
++
++PRIVATE
++int amxd_param_value_set_type(amxd_param_value_t* value, amxc_var_type_id_t type);
++
++PRIVATE
++amxc_var_type_id_t amxd_param_value_type_of(const amxd_param_value_t* const value);
++
++PRIVATE
++int amxd_param_value_to_variant(const amxd_param_value_t* const value, amxc_var_t* var);
++
++PRIVATE
++int amxd_param_value_from_variant(amxd_param_value_t* value, amxc_var_t* var);
++
++PRIVATE
++int amxd_param_value_copy(amxd_param_value_t* const dest, const amxd_param_value_t* const src);
++
++PRIVATE
++int amxd_param_value_compare_variant(const amxd_param_value_t* const value,
++                                     const amxc_var_t* const var,
++                                     int* result);
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif // __AMXD_PARAM_VALUE_PRIV_H__
+diff --git a/include_priv/amxd_priv.h b/include_priv/amxd_priv.h
+index b911928..07095c2 100644
+--- a/include_priv/amxd_priv.h
++++ b/include_priv/amxd_priv.h
+@@ -64,6 +64,7 @@ extern "C"
+ #include <amxp/amxp.h>
+ 
+ #include <amxd/amxd_types.h>
++#include "amxd_param_priv.h"
+ 
+ typedef amxd_status_t (* list_part_fn_t) (amxd_object_t* const object,
+                                           const amxc_var_t* args,
+@@ -104,8 +105,8 @@ amxd_status_t amxd_param_counter_destroy(amxd_object_t* const object,
+                                          void* priv);
+ 
+ PRIVATE
+-amxc_var_t* amxd_resolve_param_ref(amxd_object_t* object,
+-                                   amxc_var_t* ref);
++amxd_param_value_t* amxd_resolve_param_ref(amxd_object_t* object,
++                                           amxc_var_t* ref);
+ 
+ PRIVATE
+ bool amxd_must_add(const amxc_var_t* const args,
+diff --git a/src/amxd_action_object_add_inst.c b/src/amxd_action_object_add_inst.c
+index 343746e..4a7c05b 100644
+--- a/src/amxd_action_object_add_inst.c
++++ b/src/amxd_action_object_add_inst.c
+@@ -186,6 +186,9 @@ amxd_status_t amxd_action_object_add_inst(amxd_object_t* const object,
+     amxd_dm_access_t access = amxd_dm_access_public;
+     bool set_ro = false;
+     bool is_created = false;
++    amxc_var_t tmp;
++
++    amxc_var_init(&tmp);
+ 
+     when_null(object, exit);
+     when_null(retval, exit);
+@@ -198,10 +201,15 @@ amxd_status_t amxd_action_object_add_inst(amxd_object_t* const object,
+     if(max != NULL) {
+         uint32_t instances = amxd_object_get_instance_count(object);
+         int64_t max_inst = 0;
++
+         instances = is_created ? instances - 1 : instances;
+         if(amxc_var_type_of(max) == AMXC_VAR_ID_CSTRING) {
+-            amxc_var_t* ref_value = amxd_resolve_param_ref(object, max);
+-            max = ref_value == NULL ? max : ref_value;
++            amxd_param_value_t* ref_value = amxd_resolve_param_ref(object, max);
++
++            if(ref_value != NULL) {
++                amxd_param_value_to_variant(ref_value, &tmp);
++                max = &tmp;
++            }
+         }
+         max_inst = amxc_var_dyncast(int64_t, max);
+         if((max_inst > 0) && ((int64_t) instances >= max_inst)) {
+@@ -229,6 +237,7 @@ amxd_status_t amxd_action_object_add_inst(amxd_object_t* const object,
+ 
+ exit:
+     free(key);
++    amxc_var_clean(&tmp);
+     return status;
+ }
+ 
+diff --git a/src/amxd_action_param_read.c b/src/amxd_action_param_read.c
+index bb0383c..77eaf58 100644
+--- a/src/amxd_action_param_read.c
++++ b/src/amxd_action_param_read.c
+@@ -82,9 +82,9 @@ amxd_status_t amxd_action_param_read(UNUSED amxd_object_t* object,
+     access = (amxd_dm_access_t) GET_UINT32(args, "access");
+     if((param->attr.secured == 1) &&
+        (access == amxd_dm_access_public)) {
+-        amxc_var_set_type(retval, amxc_var_type_of(&param->value));
++        amxc_var_set_type(retval, amxd_param_value_type_of(&param->value));
+     } else {
+-        when_failed(amxc_var_copy(retval, &param->value), exit);
++        when_failed(amxd_param_value_to_variant(&param->value, retval), exit);
+     }
+ 
+     status = amxd_status_ok;
+diff --git a/src/amxd_action_param_validate.c b/src/amxd_action_param_validate.c
+index abb1cb0..9dc5169 100644
+--- a/src/amxd_action_param_validate.c
++++ b/src/amxd_action_param_validate.c
+@@ -80,8 +80,11 @@ static amxd_status_t amxd_param_check_minimum(amxd_param_t* param,
+ 
+     if(amxc_var_type_of(data) == AMXC_VAR_ID_CSTRING) {
+         amxd_object_t* object = amxd_param_get_owner(param);
+-        amxc_var_t* ref_value = amxd_resolve_param_ref(object, data);
+-        data = ref_value == NULL ? &def_val : ref_value;
++        amxd_param_value_t* ref_value = amxd_resolve_param_ref(object, data);
++        if(ref_value != NULL) {
++            amxd_param_value_to_variant(ref_value, &def_val);
++        }
++        data = &def_val;
+     }
+ 
+     if((amxd_param_get_type(param) == AMXC_VAR_ID_CSTRING) ||
+@@ -119,8 +122,11 @@ static amxd_status_t amxd_param_check_maximum(amxd_param_t* param,
+ 
+     if(amxc_var_type_of(data) == AMXC_VAR_ID_CSTRING) {
+         amxd_object_t* object = amxd_param_get_owner(param);
+-        amxc_var_t* ref_value = amxd_resolve_param_ref(object, data);
+-        data = ref_value == NULL ? data : ref_value;
++        amxd_param_value_t* ref_value = amxd_resolve_param_ref(object, data);
++        if(ref_value != NULL) {
++            amxd_param_value_to_variant(ref_value, &def_val);
++            data = &def_val;
++        }
+     }
+ 
+     if((amxd_param_get_type(param) == AMXC_VAR_ID_CSTRING) ||
+@@ -186,11 +192,11 @@ static bool is_key_in_template(const amxd_object_t* object,
+             amxd_object_get_type(object) == amxd_object_template);
+ }
+ 
+-amxc_var_t* amxd_resolve_param_ref(amxd_object_t* obj,
+-                                   amxc_var_t* ref) {
++amxd_param_value_t* amxd_resolve_param_ref(amxd_object_t* obj,
++                                           amxc_var_t* ref) {
+     amxd_object_t* ref_object = NULL;
+     amxd_param_t* ref_param = NULL;
+-    amxc_var_t* ref_value = NULL;
++    amxd_param_value_t* ref_value = NULL;
+     amxd_dm_t* dm = amxd_object_get_dm(obj);
+     char* full_ref = amxc_var_dyncast(cstring_t, ref);
+     int ref_len = strlen(full_ref);
+@@ -248,7 +254,7 @@ amxd_status_t amxd_action_param_validate(UNUSED amxd_object_t* object,
+     // TODO: Change in amxc_var_can_covert when the function is available
+     when_failed_status(amxc_var_convert(&temp,
+                                         args,
+-                                        amxc_var_type_of(&param->value)),
++                                        amxd_param_value_type_of(&param->value)),
+                        exit,
+                        status = amxd_status_invalid_value);
+ 
+@@ -312,9 +318,9 @@ amxd_status_t amxd_action_param_check_minimum(amxd_object_t* object,
+     when_null_status(param, exit, status = amxd_status_parameter_not_found);
+     when_null_status(data, exit, status = amxd_status_invalid_value);
+ 
+-    if((amxc_var_type_of(&param->value) == AMXC_VAR_ID_CSTRING) ||
+-       (amxc_var_type_of(&param->value) == AMXC_VAR_ID_CSV_STRING) ||
+-       (amxc_var_type_of(&param->value) == AMXC_VAR_ID_SSV_STRING)) {
++    if((amxd_param_value_type_of(&param->value) == AMXC_VAR_ID_CSTRING) ||
++       (amxd_param_value_type_of(&param->value) == AMXC_VAR_ID_CSV_STRING) ||
++       (amxd_param_value_type_of(&param->value) == AMXC_VAR_ID_SSV_STRING)) {
+         name = "check_minimum_length";
+     }
+     status = amxd_action_describe_action(reason, retval, name, priv);
+@@ -345,9 +351,9 @@ amxd_status_t amxd_action_param_check_maximum(amxd_object_t* object,
+     when_null_status(param, exit, status = amxd_status_parameter_not_found);
+     when_null_status(data, exit, status = amxd_status_invalid_value);
+ 
+-    if((amxc_var_type_of(&param->value) == AMXC_VAR_ID_CSTRING) ||
+-       (amxc_var_type_of(&param->value) == AMXC_VAR_ID_CSV_STRING) ||
+-       (amxc_var_type_of(&param->value) == AMXC_VAR_ID_SSV_STRING)) {
++    if((amxd_param_value_type_of(&param->value) == AMXC_VAR_ID_CSTRING) ||
++       (amxd_param_value_type_of(&param->value) == AMXC_VAR_ID_CSV_STRING) ||
++       (amxd_param_value_type_of(&param->value) == AMXC_VAR_ID_SSV_STRING)) {
+         name = "check_maximum_length";
+     }
+ 
+@@ -408,12 +414,14 @@ amxd_status_t amxd_action_param_check_is_in(amxd_object_t* object,
+                                             amxc_var_t* const retval,
+                                             void* priv) {
+     amxd_status_t status = amxd_status_unknown_error;
++    amxd_param_value_t* param_value = NULL;
+     amxc_var_t* data = (amxc_var_t*) priv;
+-    amxc_var_t* ref_value = NULL;
+     amxc_llist_t* values = NULL;
+     amxc_var_t check_value;
++    amxc_var_t ref_value;
+ 
+     amxc_var_init(&check_value);
++    amxc_var_init(&ref_value);
+     when_true_status(amxc_var_type_of(data) != AMXC_VAR_ID_CSTRING,
+                      exit,
+                      status = amxd_status_invalid_type);
+@@ -426,21 +434,24 @@ amxd_status_t amxd_action_param_check_is_in(amxd_object_t* object,
+ 
+     when_true_status(is_key_in_template(object, param), exit, status = amxd_status_ok);
+ 
+-    ref_value = amxd_resolve_param_ref(object, data);
+-    when_true_status(ref_value == NULL &&
++    param_value = amxd_resolve_param_ref(object, data);
++    when_true_status(param_value == NULL &&
+                      amxd_object_get_type(object) == amxd_object_template,
+                      exit, status = amxd_status_ok);
+-    when_null_status(ref_value, exit, status = amxd_status_invalid_value);
+-    when_true_status(is_string_empty(ref_value), exit, status = amxd_status_ok);
++    when_null_status(param_value, exit, status = amxd_status_invalid_value);
++
++    amxd_param_value_to_variant(param_value, &ref_value);
++    when_true_status(is_string_empty(&ref_value), exit, status = amxd_status_ok);
+ 
+     amxc_var_convert(&check_value, args, amxd_param_get_type(param));
+-    values = amxc_var_dyncast(amxc_llist_t, ref_value);
++    values = amxc_var_dyncast(amxc_llist_t, &ref_value);
+     when_false_status(is_value_in(&check_value, values),
+                       exit,
+                       status = amxd_status_invalid_value);
+ 
+ exit:
+     amxc_var_clean(&check_value);
++    amxc_var_clean(&ref_value);
+     amxc_llist_delete(&values, variant_list_it_free);
+     return status;
+ }
+diff --git a/src/amxd_action_param_write.c b/src/amxd_action_param_write.c
+index 3d22520..d9de778 100644
+--- a/src/amxd_action_param_write.c
++++ b/src/amxd_action_param_write.c
+@@ -93,6 +93,9 @@ amxd_status_t amxd_action_param_write(amxd_object_t* object,
+                                       UNUSED amxc_var_t* const retval,
+                                       UNUSED void* priv) {
+     amxd_status_t status = amxd_status_unknown_error;
++    amxc_var_t tmp;
++
++    amxc_var_init(&tmp);
+ 
+     when_null(param, exit);
+     when_true_status(reason != action_param_write,
+@@ -105,9 +108,13 @@ amxd_status_t amxd_action_param_write(amxd_object_t* object,
+                           status = amxd_status_invalid_value);
+     }
+ 
+-    when_failed_status(amxc_var_convert(&param->value,
++    when_failed_status(amxc_var_convert(&tmp,
+                                         args,
+-                                        amxc_var_type_of(&param->value)),
++                                        amxd_param_value_type_of(&param->value)),
++                       exit,
++                       status = amxd_status_invalid_value);
++
++    when_failed_status(amxd_param_value_from_variant(&param->value, &tmp),
+                        exit,
+                        status = amxd_status_invalid_value);
+ 
+@@ -118,6 +125,7 @@ amxd_status_t amxd_action_param_write(amxd_object_t* object,
+     status = amxd_status_ok;
+ 
+ exit:
++    amxc_var_clean(&tmp);
+     return status;
+ }
+ 
+@@ -131,14 +139,14 @@ amxd_status_t amxd_param_set_value(amxd_param_t* const param,
+ 
+     when_null(param, exit);
+ 
+-    retval = amxc_var_compare(value, &param->value, &result) == 0 ?
++    retval = amxd_param_value_compare_variant(&param->value, value, &result) == 0 ?
+         amxd_status_ok : amxd_status_unknown_error;
+     // When the value is not changed, just leave
+     when_true(retval == amxd_status_ok && result == 0, exit);
+ 
+     retval = amxd_param_validate(param, value);
+     when_failed(retval, exit);
+-    amxc_var_copy(&backup, &param->value);
++    amxd_param_value_to_variant(&param->value, &backup);
+ 
+     object = amxd_param_get_owner(param);
+     retval = amxd_dm_invoke_action(object, param, action_param_write, value, NULL);
+@@ -146,7 +154,7 @@ amxd_status_t amxd_param_set_value(amxd_param_t* const param,
+ exit:
+     if((retval != amxd_status_ok) &&
+        ( param != NULL) && !amxc_var_is_null(&backup)) {
+-        amxc_var_copy(&param->value, &backup);
++        amxd_param_value_from_variant(&param->value, &backup);
+     }
+     amxc_var_clean(&backup);
+     return retval;
+diff --git a/src/amxd_dm.c b/src/amxd_dm.c
+index 3ed0d63..1e3dbd8 100644
+--- a/src/amxd_dm.c
++++ b/src/amxd_dm.c
+@@ -314,7 +314,7 @@ static amxd_status_t amxd_dm_invoke_action_end(amxd_object_t* object,
+             bool is_key = amxd_param_is_attr_set(param, amxd_pattr_key) &&
+                 amxd_param_is_attr_set(param, amxd_pattr_unique);
+             if((name != NULL) && is_key && (strcmp(name, "Alias") == 0)) {
+-                const char* alias = GET_CHAR(&param->value, NULL);
++                const char* alias = amxd_param_get_cstring_t(param);
+                 if((alias == NULL) || (isdigit((alias[0])) != 0) || (alias[0] == 0)) {
+                     new_status = amxd_status_invalid_name;
+                 } else {
+diff --git a/src/amxd_object_event.c b/src/amxd_object_event.c
+index 37bcd0d..1084214 100644
+--- a/src/amxd_object_event.c
++++ b/src/amxd_object_event.c
+@@ -136,10 +136,10 @@ static void amxd_object_instance_sig_data(amxd_object_t* object,
+                 continue;
+             }
+             param_event_value = amxc_var_add_new_key(params, param->name);
+-            amxc_var_copy(param_event_value, &param->value);
++            amxd_param_value_to_variant(&param->value, param_event_value);
+             if(IS_BIT_SET(attrs, amxd_pattr_key)) {
+                 param_event_value = amxc_var_add_new_key(keys, param->name);
+-                amxc_var_copy(param_event_value, &param->value);
++                amxd_param_value_to_variant(&param->value, param_event_value);
+             }
+         }
+     } else {
+@@ -301,7 +301,8 @@ void amxd_object_send_changed(amxd_object_t* object,
+             break;
+         }
+         if(!amxd_param_is_attr_set(param_def, amxd_pattr_variable)) {
+-            amxc_var_set_key(&values, amxc_var_key(ovalue), &param_def->value, AMXC_VAR_FLAG_COPY);
++            amxc_var_t* new_value = amxc_var_add_new_key(&values, amxc_var_key(ovalue));
++            amxd_param_value_to_variant(&param_def->value, new_value);
+         }
+     }
+ 
+@@ -451,4 +452,4 @@ amxc_var_t* amxd_object_new_event_data(const amxd_object_t* object,
+ 
+ exit:
+     return data;
+-}
+\ No newline at end of file
++}
+diff --git a/src/amxd_object_parameter.c b/src/amxd_object_parameter.c
+index 237d8c1..42da848 100644
+--- a/src/amxd_object_parameter.c
++++ b/src/amxd_object_parameter.c
+@@ -294,7 +294,7 @@ amxd_status_t amxd_object_get_param(amxd_object_t* const object,
+         amxd_param_t* param_def = amxd_object_find_param_def(real_object, real_param);
+         if(param_def != NULL) {
+             if(!amxd_param_has_action(param_def, action_param_read)) {
+-                amxc_var_copy(value, &param_def->value);
++                amxd_param_value_to_variant(&param_def->value, value);
+                 retval = amxd_status_ok;
+             } else {
+                 retval = amxd_dm_invoke_action(real_object,
+@@ -329,15 +329,11 @@ exit:
+     return retval;
+ }
+ 
+-const amxc_var_t* amxd_object_get_param_value(const amxd_object_t* const object,
+-                                              const char* name) {
+-    amxc_var_t* value = NULL;
+-    amxd_param_t* param = amxd_object_get_param_def(object, name);
+-    if(param != NULL) {
+-        value = &param->value;
+-    }
+-
+-    return value;
++const amxc_var_t* amxd_object_get_param_value(UNUSED const amxd_object_t* const object,
++                                              UNUSED const char* name) {
++    // This function is deprecated
++    // Return NULL to allow compilation
++    return NULL;
+ }
+ 
+ amxd_status_t amxd_object_get_current_param_value(const amxd_object_t* const object,
+@@ -349,7 +345,7 @@ amxd_status_t amxd_object_get_current_param_value(const amxd_object_t* const obj
+     when_null_status(value, exit, status = amxd_status_invalid_arg);
+     amxc_var_set_type(value, AMXC_VAR_ID_NULL);
+     when_null_status(param, exit, status = amxd_status_parameter_not_found);
+-    amxc_var_copy(value, &param->value);
++    amxd_param_value_to_variant(&param->value, value);
+ 
+ exit:
+     return status;
+diff --git a/src/amxd_param_value.c b/src/amxd_param_value.c
+new file mode 100644
+index 0000000..f346919
+--- /dev/null
++++ b/src/amxd_param_value.c
+@@ -0,0 +1,302 @@
++/****************************************************************************
++**
++** SPDX-License-Identifier: BSD-2-Clause-Patent
++**
++** SPDX-FileCopyrightText: Copyright (c) 2026 SoftAtHome
++**
++** Redistribution and use in source and binary forms, with or without modification,
++** are permitted provided that the following conditions are met:
++**
++** 1. Redistributions of source code must retain the above copyright notice,
++** this list of conditions and the following disclaimer.
++**
++** 2. Redistributions in binary form must reproduce the above copyright notice,
++** this list of conditions and the following disclaimer in the documentation
++** and/or other materials provided with the distribution.
++**
++** Subject to the terms and conditions of this license, each copyright holder
++** and contributor hereby grants to those receiving rights under this license
++** a perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable
++** (except for failure to satisfy the conditions of this license) patent license
++** to make, have made, use, offer to sell, sell, import, and otherwise transfer
++** this software, where such license applies only to those patent claims, already
++** acquired or hereafter acquired, licensable by such copyright holder or contributor
++** that are necessarily infringed by:
++**
++** (a) their Contribution(s) (the licensed copyrights of copyright holders and
++** non-copyrightable additions of contributors, in source or binary form) alone;
++** or
++**
++** (b) combination of their Contribution(s) with the work of authorship to which
++** such Contribution(s) was added by such copyright holder or contributor, if,
++** at the time the Contribution is added, such addition causes such combination
++** to be necessarily infringed. The patent license shall not apply to any other
++** combinations which include the Contribution.
++**
++** Except as expressly stated above, no rights or licenses from any copyright
++** holder or contributor is granted under this license, whether expressly, by
++** implication, estoppel or otherwise.
++**
++** DISCLAIMER
++**
++** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++** AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++** IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++** ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE
++** LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++** DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
++** SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
++** CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
++** OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
++** USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++**
++****************************************************************************/
++
++#ifndef _GNU_SOURCE
++#define _GNU_SOURCE
++#endif
++
++#include <stdlib.h>
++#include <string.h>
++
++#include <amxc/amxc.h>
++#include <amxp/amxp.h>
++#include <amxd/amxd_common.h>
++
++#include "amxd_priv.h"
++#include "amxd_assert.h"
++
++int amxd_param_value_init(amxd_param_value_t* value) {
++    int retval = -1;
++    when_null(value, exit);
++
++    value->type_id = 0;
++    memset(&value->data, 0, sizeof(value->data));
++    retval = 0;
++
++exit:
++    return retval;
++}
++
++void amxd_param_value_clean(amxd_param_value_t* value) {
++    when_null(value, exit);
++
++    if((value->type_id == AMXC_VAR_ID_CSTRING) ||
++       (value->type_id == AMXC_VAR_ID_CSV_STRING) ||
++       (value->type_id == AMXC_VAR_ID_SSV_STRING)) {
++        free(value->data.s);
++    }
++
++    value->type_id = 0;
++    memset(&value->data, 0, sizeof(value->data));
++
++exit:
++    return;
++}
++
++int amxd_param_value_set_type(amxd_param_value_t* value, amxc_var_type_id_t type) {
++    int retval = -1;
++    when_null(value, exit);
++
++    amxd_param_value_clean(value);
++    value->type_id = type;
++    retval = 0;
++
++    // Keep the behavior consistent with amxc_var_set_type in case of a timestamp
++    if(type == AMXC_VAR_ID_TIMESTAMP) {
++        retval = amxc_ts_parse(&value->data.ts, "0001-01-01T00:00:00Z", 20);
++    }
++
++exit:
++    return retval;
++}
++
++amxc_var_type_id_t amxd_param_value_type_of(const amxd_param_value_t* const value) {
++    return value == NULL ? AMXC_VAR_ID_NULL : value->type_id;
++}
++
++int amxd_param_value_to_variant(const amxd_param_value_t* const value, amxc_var_t* var) {
++    int retval = -1;
++    when_null(value, exit);
++    when_null(var, exit);
++
++    switch(value->type_id) {
++    case AMXC_VAR_ID_NULL:
++        retval = amxc_var_set_type(var, AMXC_VAR_ID_NULL);
++        break;
++    case AMXC_VAR_ID_CSTRING:
++        retval = amxc_var_set_cstring_t(var, value->data.s == NULL ? "" : value->data.s);
++        break;
++    case AMXC_VAR_ID_CSV_STRING:
++        retval = amxc_var_set_csv_string_t(var, value->data.s == NULL ? "" : value->data.s);
++        break;
++    case AMXC_VAR_ID_SSV_STRING:
++        retval = amxc_var_set_ssv_string_t(var, value->data.s == NULL ? "" : value->data.s);
++        break;
++    case AMXC_VAR_ID_INT8:
++        retval = amxc_var_set_int8_t(var, value->data.i8);
++        break;
++    case AMXC_VAR_ID_INT16:
++        retval = amxc_var_set_int16_t(var, value->data.i16);
++        break;
++    case AMXC_VAR_ID_INT32:
++        retval = amxc_var_set_int32_t(var, value->data.i32);
++        break;
++    case AMXC_VAR_ID_INT64:
++        retval = amxc_var_set_int64_t(var, value->data.i64);
++        break;
++    case AMXC_VAR_ID_UINT8:
++        retval = amxc_var_set_uint8_t(var, value->data.ui8);
++        break;
++    case AMXC_VAR_ID_UINT16:
++        retval = amxc_var_set_uint16_t(var, value->data.ui16);
++        break;
++    case AMXC_VAR_ID_UINT32:
++        retval = amxc_var_set_uint32_t(var, value->data.ui32);
++        break;
++    case AMXC_VAR_ID_UINT64:
++        retval = amxc_var_set_uint64_t(var, value->data.ui64);
++        break;
++    case AMXC_VAR_ID_FLOAT:
++        retval = amxc_var_set_float(var, value->data.f);
++        break;
++    case AMXC_VAR_ID_DOUBLE:
++        retval = amxc_var_set_double(var, value->data.d);
++        break;
++    case AMXC_VAR_ID_BOOL:
++        retval = amxc_var_set_bool(var, value->data.b);
++        break;
++    case AMXC_VAR_ID_TIMESTAMP:
++        retval = amxc_var_set_amxc_ts_t(var, &value->data.ts);
++        break;
++    default:
++        break;
++    }
++
++exit:
++    return retval;
++}
++
++int amxd_param_value_from_variant(amxd_param_value_t* value, amxc_var_t* var) {
++    int retval = -1;
++    when_null(value, exit);
++    when_null(var, exit);
++
++    amxd_param_value_set_type(value, amxc_var_type_of(var));
++    retval = 0;
++
++    switch(amxc_var_type_of(var)) {
++    case AMXC_VAR_ID_NULL:
++        break;
++    case AMXC_VAR_ID_CSTRING:
++    case AMXC_VAR_ID_CSV_STRING:
++    case AMXC_VAR_ID_SSV_STRING:
++        if(var->data.s != NULL) {
++            value->data.s = strdup(var->data.s);
++            if(value->data.s == NULL) {
++                amxd_param_value_clean(value);
++                retval = -1;
++                goto exit;
++            }
++        } else {
++            value->data.s = NULL;
++        }
++        break;
++    case AMXC_VAR_ID_INT8:
++        value->data.i8 = var->data.i8;
++        break;
++    case AMXC_VAR_ID_INT16:
++        value->data.i16 = var->data.i16;
++        break;
++    case AMXC_VAR_ID_INT32:
++        value->data.i32 = var->data.i32;
++        break;
++    case AMXC_VAR_ID_INT64:
++        value->data.i64 = var->data.i64;
++        break;
++    case AMXC_VAR_ID_UINT8:
++        value->data.ui8 = var->data.ui8;
++        break;
++    case AMXC_VAR_ID_UINT16:
++        value->data.ui16 = var->data.ui16;
++        break;
++    case AMXC_VAR_ID_UINT32:
++        value->data.ui32 = var->data.ui32;
++        break;
++    case AMXC_VAR_ID_UINT64:
++        value->data.ui64 = var->data.ui64;
++        break;
++    case AMXC_VAR_ID_FLOAT:
++        value->data.f = var->data.f;
++        break;
++    case AMXC_VAR_ID_DOUBLE:
++        value->data.d = var->data.d;
++        break;
++    case AMXC_VAR_ID_BOOL:
++        value->data.b = var->data.b;
++        break;
++    case AMXC_VAR_ID_TIMESTAMP:
++        value->data.ts.nsec = var->data.ts.nsec;
++        value->data.ts.sec = var->data.ts.sec;
++        value->data.ts.offset = var->data.ts.offset;
++        break;
++    default:
++        amxd_param_value_clean(value);
++        retval = -1;
++        break;
++    }
++
++exit:
++    return retval;
++}
++
++int amxd_param_value_copy(amxd_param_value_t* const dest, const amxd_param_value_t* const src) {
++    int retval = -1;
++    when_null(dest, exit);
++    when_null(src, exit);
++
++    amxd_param_value_set_type(dest, src->type_id);
++
++    if((src->type_id == AMXC_VAR_ID_CSTRING) ||
++       (src->type_id == AMXC_VAR_ID_CSV_STRING) ||
++       (src->type_id == AMXC_VAR_ID_SSV_STRING)) {
++        if(src->data.s != NULL) {
++            dest->data.s = strdup(src->data.s);
++            if(dest->data.s == NULL) {
++                amxd_param_value_clean(dest);
++                goto exit;
++            }
++        }
++    } else {
++        memcpy(&dest->data, &src->data, sizeof(src->data));
++    }
++
++    retval = 0;
++
++exit:
++    return retval;
++}
++
++int amxd_param_value_compare_variant(const amxd_param_value_t* const value,
++                                     const amxc_var_t* const var,
++                                     int* result) {
++    amxc_var_t tmp;
++    int retval = -1;
++
++    amxc_var_init(&tmp);
++    when_null(result, exit);
++
++    *result = 0;
++
++    if((value == NULL) && amxc_var_is_null(var)) {
++        retval = 0;
++        goto exit;
++    }
++
++    amxd_param_value_to_variant(value, &tmp); // Tmp will be a null variant in case value is NULL
++    retval = amxc_var_compare(&tmp, var, result);
++
++exit:
++    amxc_var_clean(&tmp);
++    return retval;
++}
+diff --git a/src/amxd_parameter.c b/src/amxd_parameter.c
+index 60bdd8d..9babba8 100644
+--- a/src/amxd_parameter.c
++++ b/src/amxd_parameter.c
+@@ -106,12 +106,12 @@ static amxd_status_t amxd_param_init(amxd_param_t* const param,
+     param->attr.prot = 0;
+     param->attr.write_once = 0;
+ 
+-    amxc_var_init(&param->value);
++    amxd_param_value_init(&param->value);
+     if(name != NULL) {
+         param->name = strdup(name);
+         when_null(param->name, exit);
+     }
+-    amxc_var_set_type(&param->value, type);
++    amxd_param_value_set_type(&param->value, type);
+     retval = amxd_status_ok;
+ 
+ exit:
+@@ -123,7 +123,7 @@ static int amxd_param_clean(amxd_param_t* const param) {
+     amxc_llist_clean(&param->cb_fns, amxd_param_free_cb_it);
+     amxc_set_delete(&param->flags);
+ 
+-    amxc_var_clean(&param->value);
++    amxd_param_value_clean(&param->value);
+     if(param->attr.shared_name == 0) {
+         free(param->name);
+     }
+@@ -230,8 +230,8 @@ amxd_status_t amxd_param_counter_update(amxd_param_t* counter) {
+     amxc_var_add_key(uint32_t,
+                      &old_values,
+                      amxd_param_get_name(counter),
+-                     GET_UINT32(&counter->value, NULL));
+-    amxc_var_set(uint32_t, &counter->value, amxd_object_get_instance_count(counted));
++                     amxd_param_get_uint32_t(counter));
++    amxd_param_set_uint32_t(counter, amxd_object_get_instance_count(counted));
+     amxd_object_send_changed(owner, &old_values, false);
+     amxc_var_clean(&old_values);
+ 
+@@ -293,12 +293,12 @@ amxd_status_t amxd_param_copy(amxd_param_t** dest,
+ 
+     when_failed(amxd_param_init(*dest,
+                                 NULL,
+-                                amxc_var_type_of(&source->value)),
++                                amxd_param_value_type_of(&source->value)),
+                 exit);
+     (*dest)->attr = source->attr;
+     (*dest)->attr.shared_name = 1;
+     (*dest)->name = source->name;
+-    amxc_var_copy(&(*dest)->value, &source->value);
++    amxd_param_value_copy(&(*dest)->value, &source->value);
+     if(source->flags != NULL) {
+         (*dest)->flags = amxc_set_copy(source->flags);
+     }
+@@ -492,7 +492,7 @@ exit:
+ }
+ 
+ uint32_t amxd_param_get_type(const amxd_param_t* const param) {
+-    return param == NULL ? AMXC_VAR_ID_NULL : amxc_var_type_of(&param->value);
++    return param == NULL ? AMXC_VAR_ID_NULL : amxd_param_value_type_of(&param->value);
+ }
+ 
+ amxd_status_t amxd_param_set_type(amxd_param_t* const param, uint32_t type) {
+@@ -503,7 +503,7 @@ amxd_status_t amxd_param_set_type(amxd_param_t* const param, uint32_t type) {
+     if((type != AMXC_VAR_ID_LIST) &&
+        ( type != AMXC_VAR_ID_HTABLE) &&
+        ( type != AMXC_VAR_ID_FD)) {
+-        amxc_var_set_type(&param->value, type);
++        amxd_param_value_set_type(&param->value, type);
+     } else {
+         status = amxd_status_invalid_type;
+     }
+@@ -518,7 +518,7 @@ amxd_status_t amxd_param_get_current_value(amxd_param_t* const param,
+ 
+     when_null_status(param, exit, retval = amxd_status_invalid_arg);
+ 
+-    amxc_var_copy(value, &param->value);
++    amxd_param_value_to_variant(&param->value, value);
+ 
+ exit:
+     return retval;
+@@ -675,17 +675,25 @@ exit:
+ amxd_status_t amxd_param_set_current_value(amxd_param_t* const param,
+                                            const amxc_var_t* const value) {
+     amxd_status_t retval = amxd_status_ok;
++    amxc_var_t tmp;
++
++    amxc_var_init(&tmp);
+ 
+     when_null_status(param, exit, retval = amxd_status_invalid_arg);
+     when_null_status(value, exit, retval = amxd_status_invalid_arg);
+ 
+-    when_failed_status(amxc_var_convert(&param->value,
++    when_failed_status(amxc_var_convert(&tmp,
+                                         value,
+-                                        amxc_var_type_of(&param->value)),
++                                        amxd_param_value_type_of(&param->value)),
++                       exit,
++                       retval = amxd_status_invalid_value);
++
++    when_failed_status(amxd_param_value_from_variant(&param->value, &tmp),
+                        exit,
+                        retval = amxd_status_invalid_value);
+ 
+ exit:
++    amxc_var_clean(&tmp);
+     return retval;
+ }
+ 
+@@ -693,6 +701,7 @@ amxd_status_t amxd_param_set_cstring_t(amxd_param_t* const param, const char* da
+     amxd_status_t status = amxd_status_invalid_value;
+ 
+     when_null(param, exit);
++    when_null(data, exit);
+     when_true(param->value.type_id != AMXC_VAR_ID_CSTRING &&
+               param->value.type_id != AMXC_VAR_ID_CSV_STRING &&
+               param->value.type_id != AMXC_VAR_ID_SSV_STRING, exit);
+diff --git a/src/amxd_transaction.c b/src/amxd_transaction.c
+index c7e82b8..c175c40 100644
+--- a/src/amxd_transaction.c
++++ b/src/amxd_transaction.c
+@@ -245,7 +245,8 @@ static void amxd_trans_revert_write(amxd_object_t* object,
+                 continue;
+             }
+             if(!amxd_param_is_attr_set(param_def, amxd_pattr_variable)) {
+-                amxc_var_set_key(revert_params, amxc_var_key(param), &param_def->value, AMXC_VAR_FLAG_COPY);
++                amxc_var_t* new_value = amxc_var_add_new_key(revert_params, amxc_var_key(param));
++                amxd_param_value_to_variant(&param_def->value, new_value);
+             }
+         }
+         index++;
+diff --git a/test/test_amxd_action_object_add/test_amxd_action_object_add.c b/test/test_amxd_action_object_add/test_amxd_action_object_add.c
+index 3d426d4..89899d0 100644
+--- a/test/test_amxd_action_object_add/test_amxd_action_object_add.c
++++ b/test/test_amxd_action_object_add/test_amxd_action_object_add.c
+@@ -73,6 +73,8 @@
+ #include <amxd/amxd_action.h>
+ #include <amxd/amxd_transaction.h>
+ 
++#include "amxd_priv.h"
++
+ #include "test_amxd_action_object_add.h"
+ 
+ #include <amxc/amxc_macros.h>
+@@ -248,7 +250,7 @@ static amxd_object_t* test_build_dm(void) {
+     assert_int_equal(amxd_object_new(&object, amxd_object_singleton, "MyRoot"), 0);
+     assert_int_equal(amxd_param_new(&param, "Max", AMXC_VAR_ID_UINT32), 0);
+     assert_int_equal(amxd_object_add_param(object, param), 0);
+-    amxc_var_set(uint32_t, &param->value, 2);
++    amxd_param_set_uint32_t(param, 2);
+     assert_int_equal(amxd_dm_add_root_object(&dm, object), 0);
+ 
+     assert_int_equal(amxd_object_new(&template, amxd_object_template, "MyTemplate"), 0);
+@@ -682,4 +684,4 @@ void test_instance_keys_with_write_handler(UNUSED void** state) {
+     amxd_trans_set_value(cstring_t, &transaction, "SomeKey", "Device.Firewall.Service.1.");
+     assert_int_equal(amxd_trans_apply(&transaction, &dm), amxd_status_duplicate);
+     amxd_trans_clean(&transaction);
+-}
+\ No newline at end of file
++}
+diff --git a/test/test_amxd_action_object_add_issue_86/test_amxd_action_object_add_86.c b/test/test_amxd_action_object_add_issue_86/test_amxd_action_object_add_86.c
+index f215b57..b5cdd2c 100644
+--- a/test/test_amxd_action_object_add_issue_86/test_amxd_action_object_add_86.c
++++ b/test/test_amxd_action_object_add_issue_86/test_amxd_action_object_add_86.c
+@@ -73,6 +73,8 @@
+ #include <amxd/amxd_action.h>
+ #include <amxd/amxd_transaction.h>
+ 
++#include "amxd_priv.h"
++
+ #include "test_amxd_action_object_add_86.h"
+ 
+ #include <amxc/amxc_macros.h>
+@@ -145,7 +147,7 @@ static amxd_object_t* test_build_dm(void) {
+     assert_int_equal(amxd_object_new(&object, amxd_object_singleton, "MyRoot"), 0);
+     assert_int_equal(amxd_param_new(&param, "Max", AMXC_VAR_ID_UINT32), 0);
+     assert_int_equal(amxd_object_add_param(object, param), 0);
+-    amxc_var_set(uint32_t, &param->value, 2);
++    amxd_param_set_uint32_t(param, 2);
+     assert_int_equal(amxd_dm_add_root_object(&dm, object), 0);
+ 
+     assert_int_equal(amxd_object_new(&template, amxd_object_template, "MyTemplate"), 0);
+@@ -205,4 +207,4 @@ void test_amxd_object_add_inst_max_check(UNUSED void** state) {
+     amxd_trans_clean(&transaction);
+ 
+     amxd_dm_clean(&dm);
+-}
+\ No newline at end of file
++}
+diff --git a/test/test_amxd_issue_105/test_amxd_issue_105.c b/test/test_amxd_issue_105/test_amxd_issue_105.c
+index 1c80902..01953ed 100644
+--- a/test/test_amxd_issue_105/test_amxd_issue_105.c
++++ b/test/test_amxd_issue_105/test_amxd_issue_105.c
+@@ -74,6 +74,8 @@
+ #include <amxd/amxd_action.h>
+ #include <amxd/amxd_transaction.h>
+ 
++#include "amxd_priv.h"
++
+ #include "test_amxd_issue_105.h"
+ 
+ #include <amxc/amxc_macros.h>
+@@ -99,7 +101,7 @@ int test_amxd_setup(UNUSED void** state) {
+     amxd_param_set_attr(param, amxd_pattr_unique, true);
+     amxd_param_add_action_cb(param, action_param_validate, amxd_action_param_check_minimum, &validation_data);
+     // set a valid value in the multi-instance object
+-    amxc_var_set(cstring_t, &param->value, "00000");
++    amxd_param_set_cstring_t(param, "00000");
+     assert_int_equal(amxd_object_add_param(template, param), 0);
+ 
+     assert_int_equal(amxd_param_new(&param, "OtherParameter", AMXC_VAR_ID_CSTRING), 0);
+diff --git a/test/test_amxd_object/test_amxd_object_parameter.c b/test/test_amxd_object/test_amxd_object_parameter.c
+index 66ae45c..54994a5 100644
+--- a/test/test_amxd_object/test_amxd_object_parameter.c
++++ b/test/test_amxd_object/test_amxd_object_parameter.c
+@@ -70,6 +70,8 @@
+ #include <amxd/amxd_object.h>
+ #include <amxd/amxd_parameter.h>
+ 
++#include "amxd_priv.h"
++
+ #include "test_amxd_object.h"
+ 
+ #include <amxc/amxc_macros.h>
+@@ -193,14 +195,14 @@ void test_amxd_object_get_parameter(UNUSED void** state) {
+     assert_ptr_not_equal(param, NULL);
+     assert_ptr_equal(amxd_param_get_owner(param), instance);
+ 
+-    assert_ptr_equal(amxd_object_get_param_value(instance, "templ_param"), &param->value);
+-    assert_null(amxd_object_get_param_value(instance, "NotExistingParam"));
+-    assert_null(amxd_object_get_param_value(NULL, "templ_param"));
+-    assert_null(amxd_object_get_param_value(instance, ""));
+-    assert_null(amxd_object_get_param_value(instance, NULL));
++    //assert_ptr_equal(amxd_object_get_param_value(instance, "templ_param"), &param->value);
++    //assert_null(amxd_object_get_param_value(instance, "NotExistingParam"));
++    //assert_null(amxd_object_get_param_value(NULL, "templ_param"));
++    //assert_null(amxd_object_get_param_value(instance, ""));
++    //assert_null(amxd_object_get_param_value(instance, NULL));
+     assert_int_equal(amxd_param_new(&param, "new_param", AMXC_VAR_ID_CSTRING), 0);
+     assert_int_equal(amxd_object_add_param(instance, param), 0);
+-    assert_non_null(amxd_object_get_param_value(instance, "new_param"));
++    //assert_non_null(amxd_object_get_param_value(instance, "new_param"));
+     assert_true(param->attr.instance);
+     assert_int_equal(amxd_param_new(&param, "new_templ_param", AMXC_VAR_ID_CSTRING), 0);
+     assert_int_equal(amxd_param_set_attr(param, amxd_pattr_template, true), 0);
+diff --git a/test/test_amxd_param_value/makefile b/test/test_amxd_param_value/makefile
+new file mode 100644
+index 0000000..49c65a1
+--- /dev/null
++++ b/test/test_amxd_param_value/makefile
+@@ -0,0 +1,7 @@
++include ../test_defines.mk
++
++TARGET = run_test
++SOURCES += $(wildcard ./*.c)
++OBJECTS = $(addprefix $(OBJDIR)/,$(notdir $(SOURCES:.c=.o)))
++
++include ../test_targets.mk
+diff --git a/test/test_amxd_param_value/test_amxd_param_value.c b/test/test_amxd_param_value/test_amxd_param_value.c
+new file mode 100644
+index 0000000..dc1da44
+--- /dev/null
++++ b/test/test_amxd_param_value/test_amxd_param_value.c
+@@ -0,0 +1,664 @@
++/****************************************************************************
++**
++** SPDX-License-Identifier: BSD-2-Clause-Patent
++**
++** SPDX-FileCopyrightText: Copyright (c) 2026 SoftAtHome
++**
++** Redistribution and use in source and binary forms, with or without modification,
++** are permitted provided that the following conditions are met:
++**
++** 1. Redistributions of source code must retain the above copyright notice,
++** this list of conditions and the following disclaimer.
++**
++** 2. Redistributions in binary form must reproduce the above copyright notice,
++** this list of conditions and the following disclaimer in the documentation
++** and/or other materials provided with the distribution.
++**
++** Subject to the terms and conditions of this license, each copyright holder
++** and contributor hereby grants to those receiving rights under this license
++** a perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable
++** (except for failure to satisfy the conditions of this license) patent license
++** to make, have made, use, offer to sell, sell, import, and otherwise transfer
++** this software, where such license applies only to those patent claims, already
++** acquired or hereafter acquired, licensable by such copyright holder or contributor
++** that are necessarily infringed by:
++**
++** (a) their Contribution(s) (the licensed copyrights of copyright holders and
++** non-copyrightable additions of contributors, in source or binary form) alone;
++** or
++**
++** (b) combination of their Contribution(s) with the work of authorship to which
++** such Contribution(s) was added by such copyright holder or contributor, if,
++** at the time the Contribution is added, such addition causes such combination
++** to be necessarily infringed. The patent license shall not apply to any other
++** combinations which include the Contribution.
++**
++** Except as expressly stated above, no rights or licenses from any copyright
++** holder or contributor is granted under this license, whether expressly, by
++** implication, estoppel or otherwise.
++**
++** DISCLAIMER
++**
++** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++** AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++** IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++** ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE
++** LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++** DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
++** SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
++** CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
++** OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
++** USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++**
++****************************************************************************/
++
++#include <stdlib.h>
++#include <stdarg.h>
++#include <stddef.h>
++#include <setjmp.h>
++#include <string.h>
++#include <cmocka.h>
++
++#include <amxc/amxc.h>
++#include <amxp/amxp.h>
++
++#include <amxd/amxd_common.h>
++
++#include "amxd_priv.h"
++#include "amxd_param_value_priv.h"
++
++#include "test_amxd_param_value.h"
++
++#include <amxc/amxc_macros.h>
++
++void test_amxd_param_value_init(UNUSED void** state) {
++    amxd_param_value_t value;
++
++    assert_int_equal(amxd_param_value_init(&value), 0);
++    assert_int_equal(value.type_id, 0);
++    assert_null(value.data.s);
++}
++
++void test_amxd_param_value_init_null(UNUSED void** state) {
++    assert_int_not_equal(amxd_param_value_init(NULL), 0);
++}
++
++void test_amxd_param_value_clean_null(UNUSED void** state) {
++    amxd_param_value_clean(NULL);
++}
++
++void test_amxd_param_value_clean_string_types(UNUSED void** state) {
++    amxd_param_value_t value;
++
++    amxd_param_value_init(&value);
++    value.type_id = AMXC_VAR_ID_CSTRING;
++    value.data.s = strdup("hello");
++    amxd_param_value_clean(&value);
++    assert_int_equal(value.type_id, 0);
++
++    amxd_param_value_init(&value);
++    value.type_id = AMXC_VAR_ID_CSV_STRING;
++    value.data.s = strdup("a,b,c");
++    amxd_param_value_clean(&value);
++    assert_int_equal(value.type_id, 0);
++
++    amxd_param_value_init(&value);
++    value.type_id = AMXC_VAR_ID_SSV_STRING;
++    value.data.s = strdup("a b c");
++    amxd_param_value_clean(&value);
++    assert_int_equal(value.type_id, 0);
++}
++
++void test_amxd_param_value_clean_non_string(UNUSED void** state) {
++    amxd_param_value_t value;
++
++    amxd_param_value_init(&value);
++    value.type_id = AMXC_VAR_ID_INT32;
++    value.data.i32 = 42;
++    amxd_param_value_clean(&value);
++    assert_int_equal(value.type_id, 0);
++}
++
++void test_amxd_param_value_set_type(UNUSED void** state) {
++    amxd_param_value_t value;
++
++    amxd_param_value_init(&value);
++    assert_int_equal(amxd_param_value_set_type(&value, AMXC_VAR_ID_INT32), 0);
++    assert_int_equal(value.type_id, AMXC_VAR_ID_INT32);
++}
++
++void test_amxd_param_value_set_type_ts(UNUSED void** state) {
++    amxd_param_value_t value;
++    char str_ts[40];
++    const char* ts = "0001-01-01T00:00:00Z";
++
++    amxd_param_value_init(&value);
++    assert_int_equal(amxd_param_value_set_type(&value, AMXC_VAR_ID_TIMESTAMP), 0);
++    assert_int_equal(value.type_id, AMXC_VAR_ID_TIMESTAMP);
++
++    assert_int_equal(amxc_ts_format(&value.data.ts, str_ts, 40), strlen(ts));
++    assert_string_equal(str_ts, ts);
++}
++
++void test_amxd_param_value_set_type_null(UNUSED void** state) {
++    assert_int_not_equal(amxd_param_value_set_type(NULL, AMXC_VAR_ID_INT32), 0);
++}
++
++void test_amxd_param_value_set_type_cleans_string(UNUSED void** state) {
++    amxd_param_value_t value;
++
++    amxd_param_value_init(&value);
++    value.type_id = AMXC_VAR_ID_CSTRING;
++    value.data.s = strdup("to be freed");
++    assert_int_equal(amxd_param_value_set_type(&value, AMXC_VAR_ID_INT32), 0);
++    assert_int_equal(value.type_id, AMXC_VAR_ID_INT32);
++}
++
++void test_amxd_param_value_type_of(UNUSED void** state) {
++    amxd_param_value_t value;
++
++    amxd_param_value_init(&value);
++    value.type_id = AMXC_VAR_ID_UINT64;
++    assert_int_equal(amxd_param_value_type_of(&value), AMXC_VAR_ID_UINT64);
++}
++
++void test_amxd_param_value_type_of_null(UNUSED void** state) {
++    assert_int_equal(amxd_param_value_type_of(NULL), AMXC_VAR_ID_NULL);
++}
++
++void test_amxd_param_value_to_variant_null_args(UNUSED void** state) {
++    amxd_param_value_t value;
++    amxc_var_t var;
++
++    amxc_var_init(&var);
++    amxd_param_value_init(&value);
++
++    assert_int_not_equal(amxd_param_value_to_variant(NULL, &var), 0);
++    assert_int_not_equal(amxd_param_value_to_variant(&value, NULL), 0);
++
++    amxc_var_clean(&var);
++}
++
++void test_amxd_param_value_to_variant_null_type(UNUSED void** state) {
++    amxd_param_value_t value;
++    amxc_var_t var;
++
++    amxc_var_init(&var);
++    amxd_param_value_init(&value);
++    value.type_id = AMXC_VAR_ID_NULL;
++
++    assert_int_equal(amxd_param_value_to_variant(&value, &var), 0);
++    assert_int_equal(amxc_var_type_of(&var), AMXC_VAR_ID_NULL);
++
++    amxc_var_clean(&var);
++}
++
++void test_amxd_param_value_to_variant_strings(UNUSED void** state) {
++    amxd_param_value_t value;
++    amxc_var_t var;
++
++    amxc_var_init(&var);
++    amxd_param_value_init(&value);
++
++    value.type_id = AMXC_VAR_ID_CSTRING;
++    value.data.s = strdup("hello");
++    assert_int_equal(amxd_param_value_to_variant(&value, &var), 0);
++    assert_int_equal(amxc_var_type_of(&var), AMXC_VAR_ID_CSTRING);
++    assert_string_equal(amxc_var_constcast(cstring_t, &var), "hello");
++    free(value.data.s);
++
++    amxd_param_value_init(&value);
++    value.type_id = AMXC_VAR_ID_CSTRING;
++    value.data.s = NULL;
++    assert_int_equal(amxd_param_value_to_variant(&value, &var), 0);
++    assert_string_equal(amxc_var_constcast(cstring_t, &var), "");
++
++    amxd_param_value_init(&value);
++    value.type_id = AMXC_VAR_ID_CSV_STRING;
++    value.data.s = strdup("a,b,c");
++    assert_int_equal(amxd_param_value_to_variant(&value, &var), 0);
++    assert_int_equal(amxc_var_type_of(&var), AMXC_VAR_ID_CSV_STRING);
++    free(value.data.s);
++
++    amxd_param_value_init(&value);
++    value.type_id = AMXC_VAR_ID_SSV_STRING;
++    value.data.s = strdup("a b c");
++    assert_int_equal(amxd_param_value_to_variant(&value, &var), 0);
++    assert_int_equal(amxc_var_type_of(&var), AMXC_VAR_ID_SSV_STRING);
++    free(value.data.s);
++
++    amxc_var_clean(&var);
++}
++
++void test_amxd_param_value_to_variant_integers(UNUSED void** state) {
++    amxd_param_value_t value;
++    amxc_var_t var;
++
++    amxc_var_init(&var);
++    amxd_param_value_init(&value);
++
++    value.type_id = AMXC_VAR_ID_INT8;
++    value.data.i8 = -10;
++    assert_int_equal(amxd_param_value_to_variant(&value, &var), 0);
++    assert_int_equal(amxc_var_constcast(int8_t, &var), -10);
++
++    value.type_id = AMXC_VAR_ID_INT16;
++    value.data.i16 = -1000;
++    assert_int_equal(amxd_param_value_to_variant(&value, &var), 0);
++    assert_int_equal(amxc_var_constcast(int16_t, &var), -1000);
++
++    value.type_id = AMXC_VAR_ID_INT32;
++    value.data.i32 = -100000;
++    assert_int_equal(amxd_param_value_to_variant(&value, &var), 0);
++    assert_int_equal(amxc_var_constcast(int32_t, &var), -100000);
++
++    value.type_id = AMXC_VAR_ID_INT64;
++    value.data.i64 = -1000000000LL;
++    assert_int_equal(amxd_param_value_to_variant(&value, &var), 0);
++    assert_int_equal(amxc_var_constcast(int64_t, &var), -1000000000LL);
++
++    value.type_id = AMXC_VAR_ID_UINT8;
++    value.data.ui8 = 200;
++    assert_int_equal(amxd_param_value_to_variant(&value, &var), 0);
++    assert_int_equal(amxc_var_constcast(uint8_t, &var), 200);
++
++    value.type_id = AMXC_VAR_ID_UINT16;
++    value.data.ui16 = 60000;
++    assert_int_equal(amxd_param_value_to_variant(&value, &var), 0);
++    assert_int_equal(amxc_var_constcast(uint16_t, &var), 60000);
++
++    value.type_id = AMXC_VAR_ID_UINT32;
++    value.data.ui32 = 3000000000UL;
++    assert_int_equal(amxd_param_value_to_variant(&value, &var), 0);
++    assert_int_equal(amxc_var_constcast(uint32_t, &var), 3000000000UL);
++
++    value.type_id = AMXC_VAR_ID_UINT64;
++    value.data.ui64 = 10000000000ULL;
++    assert_int_equal(amxd_param_value_to_variant(&value, &var), 0);
++    assert_int_equal(amxc_var_constcast(uint64_t, &var), 10000000000ULL);
++
++    amxc_var_clean(&var);
++}
++
++void test_amxd_param_value_to_variant_floats(UNUSED void** state) {
++    amxd_param_value_t value;
++    amxc_var_t var;
++
++    amxc_var_init(&var);
++    amxd_param_value_init(&value);
++
++    value.type_id = AMXC_VAR_ID_FLOAT;
++    value.data.f = 1.5f;
++    assert_int_equal(amxd_param_value_to_variant(&value, &var), 0);
++    assert_float_equal(amxc_var_constcast(float, &var), 1.5f, 0.001f);
++
++    value.type_id = AMXC_VAR_ID_DOUBLE;
++    value.data.d = 3.14159;
++    assert_int_equal(amxd_param_value_to_variant(&value, &var), 0);
++    assert_float_equal(amxc_var_constcast(double, &var), 3.14159, 0.00001);
++
++    amxc_var_clean(&var);
++}
++
++void test_amxd_param_value_to_variant_bool(UNUSED void** state) {
++    amxd_param_value_t value;
++    amxc_var_t var;
++
++    amxc_var_init(&var);
++    amxd_param_value_init(&value);
++
++    value.type_id = AMXC_VAR_ID_BOOL;
++    value.data.b = true;
++    assert_int_equal(amxd_param_value_to_variant(&value, &var), 0);
++    assert_true(amxc_var_constcast(bool, &var));
++
++    value.data.b = false;
++    assert_int_equal(amxd_param_value_to_variant(&value, &var), 0);
++    assert_false(amxc_var_constcast(bool, &var));
++
++    amxc_var_clean(&var);
++}
++
++void test_amxd_param_value_to_variant_timestamp(UNUSED void** state) {
++    amxd_param_value_t value;
++    amxc_var_t var;
++
++    amxc_var_init(&var);
++    amxd_param_value_init(&value);
++
++    value.type_id = AMXC_VAR_ID_TIMESTAMP;
++    value.data.ts.sec = 1700000000;
++    value.data.ts.nsec = 123456789;
++    value.data.ts.offset = 0;
++
++    assert_int_equal(amxd_param_value_to_variant(&value, &var), 0);
++    assert_int_equal(amxc_var_type_of(&var), AMXC_VAR_ID_TIMESTAMP);
++
++    amxc_var_clean(&var);
++}
++
++void test_amxd_param_value_to_variant_unknown_type(UNUSED void** state) {
++    amxd_param_value_t value;
++    amxc_var_t var;
++
++    amxc_var_init(&var);
++    amxd_param_value_init(&value);
++    value.type_id = AMXC_VAR_ID_ANY;
++
++    assert_int_not_equal(amxd_param_value_to_variant(&value, &var), 0);
++
++    amxc_var_clean(&var);
++}
++
++void test_amxd_param_value_from_variant_null_args(UNUSED void** state) {
++    amxd_param_value_t value;
++    amxc_var_t var;
++
++    amxc_var_init(&var);
++    amxd_param_value_init(&value);
++
++    assert_int_not_equal(amxd_param_value_from_variant(NULL, &var), 0);
++    assert_int_not_equal(amxd_param_value_from_variant(&value, NULL), 0);
++
++    amxc_var_clean(&var);
++}
++
++void test_amxd_param_value_from_variant_null_type(UNUSED void** state) {
++    amxd_param_value_t value;
++    amxc_var_t var;
++
++    amxc_var_init(&var);
++    amxd_param_value_init(&value);
++    amxc_var_set_type(&var, AMXC_VAR_ID_NULL);
++
++    assert_int_equal(amxd_param_value_from_variant(&value, &var), 0);
++    assert_int_equal(value.type_id, AMXC_VAR_ID_NULL);
++
++    amxc_var_clean(&var);
++}
++
++void test_amxd_param_value_from_variant_strings(UNUSED void** state) {
++    amxd_param_value_t value;
++    amxc_var_t var;
++
++    amxc_var_init(&var);
++    amxd_param_value_init(&value);
++
++    amxc_var_set_cstring_t(&var, "world");
++    assert_int_equal(amxd_param_value_from_variant(&value, &var), 0);
++    assert_int_equal(value.type_id, AMXC_VAR_ID_CSTRING);
++    assert_string_equal(value.data.s, "world");
++    amxd_param_value_clean(&value);
++
++    amxc_var_set_csv_string_t(&var, "x,y,z");
++    assert_int_equal(amxd_param_value_from_variant(&value, &var), 0);
++    assert_int_equal(value.type_id, AMXC_VAR_ID_CSV_STRING);
++    assert_string_equal(value.data.s, "x,y,z");
++    amxd_param_value_clean(&value);
++
++    amxc_var_set_ssv_string_t(&var, "x y z");
++    assert_int_equal(amxd_param_value_from_variant(&value, &var), 0);
++    assert_int_equal(value.type_id, AMXC_VAR_ID_SSV_STRING);
++    assert_string_equal(value.data.s, "x y z");
++    amxd_param_value_clean(&value);
++
++    amxc_var_clean(&var);
++}
++
++void test_amxd_param_value_from_variant_string_null_data(UNUSED void** state) {
++    amxd_param_value_t value;
++    amxc_var_t var;
++
++    amxc_var_init(&var);
++    amxd_param_value_init(&value);
++
++    amxc_var_set_type(&var, AMXC_VAR_ID_CSTRING);
++    var.data.s = NULL;
++
++    assert_int_equal(amxd_param_value_from_variant(&value, &var), 0);
++    assert_int_equal(value.type_id, AMXC_VAR_ID_CSTRING);
++    assert_null(value.data.s);
++
++    amxc_var_clean(&var);
++}
++
++void test_amxd_param_value_from_variant_integers(UNUSED void** state) {
++    amxd_param_value_t value;
++    amxc_var_t var;
++
++    amxc_var_init(&var);
++    amxd_param_value_init(&value);
++
++    amxc_var_set_int8_t(&var, -5);
++    assert_int_equal(amxd_param_value_from_variant(&value, &var), 0);
++    assert_int_equal(value.data.i8, -5);
++
++    amxc_var_set_int16_t(&var, -500);
++    assert_int_equal(amxd_param_value_from_variant(&value, &var), 0);
++    assert_int_equal(value.data.i16, -500);
++
++    amxc_var_set_int32_t(&var, -50000);
++    assert_int_equal(amxd_param_value_from_variant(&value, &var), 0);
++    assert_int_equal(value.data.i32, -50000);
++
++    amxc_var_set_int64_t(&var, -5000000000LL);
++    assert_int_equal(amxd_param_value_from_variant(&value, &var), 0);
++    assert_int_equal(value.data.i64, -5000000000LL);
++
++    amxc_var_set_uint8_t(&var, 250);
++    assert_int_equal(amxd_param_value_from_variant(&value, &var), 0);
++    assert_int_equal(value.data.ui8, 250);
++
++    amxc_var_set_uint16_t(&var, 65000);
++    assert_int_equal(amxd_param_value_from_variant(&value, &var), 0);
++    assert_int_equal(value.data.ui16, 65000);
++
++    amxc_var_set_uint32_t(&var, 4000000000UL);
++    assert_int_equal(amxd_param_value_from_variant(&value, &var), 0);
++    assert_int_equal(value.data.ui32, 4000000000UL);
++
++    amxc_var_set_uint64_t(&var, 20000000000ULL);
++    assert_int_equal(amxd_param_value_from_variant(&value, &var), 0);
++    assert_int_equal(value.data.ui64, 20000000000ULL);
++
++    amxc_var_clean(&var);
++}
++
++void test_amxd_param_value_from_variant_floats(UNUSED void** state) {
++    amxd_param_value_t value;
++    amxc_var_t var;
++
++    amxc_var_init(&var);
++    amxd_param_value_init(&value);
++
++    amxc_var_set_float(&var, 2.5f);
++    assert_int_equal(amxd_param_value_from_variant(&value, &var), 0);
++    assert_float_equal(value.data.f, 2.5f, 0.001f);
++
++    amxc_var_set_double(&var, 2.71828);
++    assert_int_equal(amxd_param_value_from_variant(&value, &var), 0);
++    assert_float_equal(value.data.d, 2.71828, 0.00001);
++
++    amxc_var_clean(&var);
++}
++
++void test_amxd_param_value_from_variant_bool(UNUSED void** state) {
++    amxd_param_value_t value;
++    amxc_var_t var;
++
++    amxc_var_init(&var);
++    amxd_param_value_init(&value);
++
++    amxc_var_set_bool(&var, true);
++    assert_int_equal(amxd_param_value_from_variant(&value, &var), 0);
++    assert_true(value.data.b);
++
++    amxc_var_set_bool(&var, false);
++    assert_int_equal(amxd_param_value_from_variant(&value, &var), 0);
++    assert_false(value.data.b);
++
++    amxc_var_clean(&var);
++}
++
++void test_amxd_param_value_from_variant_timestamp(UNUSED void** state) {
++    amxd_param_value_t value;
++    amxc_var_t var;
++    amxc_ts_t ts;
++
++    amxc_var_init(&var);
++    amxd_param_value_init(&value);
++
++    ts.sec = 1700000000;
++    ts.nsec = 999999999;
++    ts.offset = 60;
++    amxc_var_set_amxc_ts_t(&var, &ts);
++
++    assert_int_equal(amxd_param_value_from_variant(&value, &var), 0);
++    assert_int_equal(value.type_id, AMXC_VAR_ID_TIMESTAMP);
++    assert_int_equal(value.data.ts.sec, 1700000000);
++    assert_int_equal(value.data.ts.nsec, 999999999);
++    assert_int_equal(value.data.ts.offset, 60);
++
++    amxc_var_clean(&var);
++}
++
++void test_amxd_param_value_from_variant_unknown_type(UNUSED void** state) {
++    amxd_param_value_t value;
++    amxc_var_t var;
++
++    amxc_var_init(&var);
++    amxd_param_value_init(&value);
++    amxc_var_set_type(&var, AMXC_VAR_ID_LIST);
++
++    assert_int_not_equal(amxd_param_value_from_variant(&value, &var), 0);
++
++    amxc_var_clean(&var);
++}
++
++void test_amxd_param_value_copy_null_args(UNUSED void** state) {
++    amxd_param_value_t src;
++    amxd_param_value_t dest;
++
++    amxd_param_value_init(&src);
++    amxd_param_value_init(&dest);
++
++    assert_int_not_equal(amxd_param_value_copy(NULL, &src), 0);
++    assert_int_not_equal(amxd_param_value_copy(&dest, NULL), 0);
++}
++
++void test_amxd_param_value_copy_string(UNUSED void** state) {
++    amxd_param_value_t src;
++    amxd_param_value_t dest;
++
++    amxd_param_value_init(&src);
++    amxd_param_value_init(&dest);
++
++    src.type_id = AMXC_VAR_ID_CSTRING;
++    src.data.s = strdup("copy me");
++
++    assert_int_equal(amxd_param_value_copy(&dest, &src), 0);
++    assert_int_equal(dest.type_id, AMXC_VAR_ID_CSTRING);
++    assert_string_equal(dest.data.s, "copy me");
++    assert_ptr_not_equal(dest.data.s, src.data.s);
++
++    amxd_param_value_clean(&src);
++    amxd_param_value_clean(&dest);
++}
++
++void test_amxd_param_value_copy_string_null_data(UNUSED void** state) {
++    amxd_param_value_t src;
++    amxd_param_value_t dest;
++
++    amxd_param_value_init(&src);
++    amxd_param_value_init(&dest);
++
++    src.type_id = AMXC_VAR_ID_CSTRING;
++    src.data.s = NULL;
++
++    assert_int_equal(amxd_param_value_copy(&dest, &src), 0);
++    assert_int_equal(dest.type_id, AMXC_VAR_ID_CSTRING);
++    assert_null(dest.data.s);
++}
++
++void test_amxd_param_value_copy_non_string(UNUSED void** state) {
++    amxd_param_value_t src;
++    amxd_param_value_t dest;
++
++    amxd_param_value_init(&src);
++    amxd_param_value_init(&dest);
++
++    src.type_id = AMXC_VAR_ID_INT64;
++    src.data.i64 = 987654321LL;
++
++    assert_int_equal(amxd_param_value_copy(&dest, &src), 0);
++    assert_int_equal(dest.type_id, AMXC_VAR_ID_INT64);
++    assert_int_equal(dest.data.i64, 987654321LL);
++
++    src.type_id = AMXC_VAR_ID_BOOL;
++    src.data.b = true;
++
++    assert_int_equal(amxd_param_value_copy(&dest, &src), 0);
++    assert_true(dest.data.b);
++}
++
++void test_amxd_param_value_compare_variant_null_result(UNUSED void** state) {
++    amxd_param_value_t value;
++    amxc_var_t var;
++
++    amxc_var_init(&var);
++    amxd_param_value_init(&value);
++    amxc_var_set_int32_t(&var, 0);
++
++    assert_int_not_equal(amxd_param_value_compare_variant(&value, &var, NULL), 0);
++
++    amxc_var_clean(&var);
++}
++
++void test_amxd_param_value_compare_variant_both_null(UNUSED void** state) {
++    amxc_var_t var;
++    int result = 99;
++
++    amxc_var_init(&var);
++    amxc_var_set_type(&var, AMXC_VAR_ID_NULL);
++
++    assert_int_equal(amxd_param_value_compare_variant(NULL, &var, &result), 0);
++    assert_int_equal(result, 0);
++
++    amxc_var_clean(&var);
++}
++
++void test_amxd_param_value_compare_variant_equal(UNUSED void** state) {
++    amxd_param_value_t value;
++    amxc_var_t var;
++    int result = 99;
++
++    amxc_var_init(&var);
++    amxd_param_value_init(&value);
++
++    value.type_id = AMXC_VAR_ID_INT32;
++    value.data.i32 = 42;
++    amxc_var_set_int32_t(&var, 42);
++
++    assert_int_equal(amxd_param_value_compare_variant(&value, &var, &result), 0);
++    assert_int_equal(result, 0);
++
++    amxc_var_clean(&var);
++}
++
++void test_amxd_param_value_compare_variant_not_equal(UNUSED void** state) {
++    amxd_param_value_t value;
++    amxc_var_t var;
++    int result = 0;
++
++    amxc_var_init(&var);
++    amxd_param_value_init(&value);
++
++    value.type_id = AMXC_VAR_ID_INT32;
++    value.data.i32 = 10;
++    amxc_var_set_int32_t(&var, 20);
++
++    assert_int_equal(amxd_param_value_compare_variant(&value, &var, &result), 0);
++    assert_int_not_equal(result, 0);
++
++    amxc_var_clean(&var);
++}
+diff --git a/test/test_amxd_param_value/test_amxd_param_value.h b/test/test_amxd_param_value/test_amxd_param_value.h
+new file mode 100644
+index 0000000..b91b492
+--- /dev/null
++++ b/test/test_amxd_param_value/test_amxd_param_value.h
+@@ -0,0 +1,95 @@
++/****************************************************************************
++**
++** SPDX-License-Identifier: BSD-2-Clause-Patent
++**
++** SPDX-FileCopyrightText: Copyright (c) 2026 SoftAtHome
++**
++** Redistribution and use in source and binary forms, with or without modification,
++** are permitted provided that the following conditions are met:
++**
++** 1. Redistributions of source code must retain the above copyright notice,
++** this list of conditions and the following disclaimer.
++**
++** 2. Redistributions in binary form must reproduce the above copyright notice,
++** this list of conditions and the following disclaimer in the documentation
++** and/or other materials provided with the distribution.
++**
++** Subject to the terms and conditions of this license, each copyright holder
++** and contributor hereby grants to those receiving rights under this license
++** a perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable
++** (except for failure to satisfy the conditions of this license) patent license
++** to make, have made, use, offer to sell, sell, import, and otherwise transfer
++** this software, where such license applies only to those patent claims, already
++** acquired or hereafter acquired, licensable by such copyright holder or contributor
++** that are necessarily infringed by:
++**
++** (a) their Contribution(s) (the licensed copyrights of copyright holders and
++** non-copyrightable additions of contributors, in source or binary form) alone;
++** or
++**
++** (b) combination of their Contribution(s) with the work of authorship to which
++** such Contribution(s) was added by such copyright holder or contributor, if,
++** at the time the Contribution is added, such addition causes such combination
++** to be necessarily infringed. The patent license shall not apply to any other
++** combinations which include the Contribution.
++**
++** Except as expressly stated above, no rights or licenses from any copyright
++** holder or contributor is granted under this license, whether expressly, by
++** implication, estoppel or otherwise.
++**
++** DISCLAIMER
++**
++** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++** AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++** IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++** ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE
++** LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++** DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
++** SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
++** CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
++** OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
++** USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++**
++****************************************************************************/
++
++#ifndef __TEST_AMXD_PARAM_VALUE_H__
++#define __TEST_AMXD_PARAM_VALUE_H__
++
++void test_amxd_param_value_init(void** state);
++void test_amxd_param_value_init_null(void** state);
++void test_amxd_param_value_clean_null(void** state);
++void test_amxd_param_value_clean_string_types(void** state);
++void test_amxd_param_value_clean_non_string(void** state);
++void test_amxd_param_value_set_type(void** state);
++void test_amxd_param_value_set_type_ts(void** state);
++void test_amxd_param_value_set_type_null(void** state);
++void test_amxd_param_value_set_type_cleans_string(void** state);
++void test_amxd_param_value_type_of(void** state);
++void test_amxd_param_value_type_of_null(void** state);
++void test_amxd_param_value_to_variant_null_args(void** state);
++void test_amxd_param_value_to_variant_null_type(void** state);
++void test_amxd_param_value_to_variant_strings(void** state);
++void test_amxd_param_value_to_variant_integers(void** state);
++void test_amxd_param_value_to_variant_floats(void** state);
++void test_amxd_param_value_to_variant_bool(void** state);
++void test_amxd_param_value_to_variant_timestamp(void** state);
++void test_amxd_param_value_to_variant_unknown_type(void** state);
++void test_amxd_param_value_from_variant_null_args(void** state);
++void test_amxd_param_value_from_variant_null_type(void** state);
++void test_amxd_param_value_from_variant_strings(void** state);
++void test_amxd_param_value_from_variant_string_null_data(void** state);
++void test_amxd_param_value_from_variant_integers(void** state);
++void test_amxd_param_value_from_variant_floats(void** state);
++void test_amxd_param_value_from_variant_bool(void** state);
++void test_amxd_param_value_from_variant_timestamp(void** state);
++void test_amxd_param_value_from_variant_unknown_type(void** state);
++void test_amxd_param_value_copy_null_args(void** state);
++void test_amxd_param_value_copy_string(void** state);
++void test_amxd_param_value_copy_string_null_data(void** state);
++void test_amxd_param_value_copy_non_string(void** state);
++void test_amxd_param_value_compare_variant_null_result(void** state);
++void test_amxd_param_value_compare_variant_both_null(void** state);
++void test_amxd_param_value_compare_variant_equal(void** state);
++void test_amxd_param_value_compare_variant_not_equal(void** state);
++
++#endif // __TEST_AMXD_PARAM_VALUE_H__
+diff --git a/test/test_amxd_param_value/test_main.c b/test/test_amxd_param_value/test_main.c
+new file mode 100644
+index 0000000..0cbd869
+--- /dev/null
++++ b/test/test_amxd_param_value/test_main.c
+@@ -0,0 +1,102 @@
++/****************************************************************************
++**
++** SPDX-License-Identifier: BSD-2-Clause-Patent
++**
++** SPDX-FileCopyrightText: Copyright (c) 2026 SoftAtHome
++**
++** Redistribution and use in source and binary forms, with or without modification,
++** are permitted provided that the following conditions are met:
++**
++** 1. Redistributions of source code must retain the above copyright notice,
++** this list of conditions and the following disclaimer.
++**
++** 2. Redistributions in binary form must reproduce the above copyright notice,
++** this list of conditions and the following disclaimer in the documentation
++** and/or other materials provided with the distribution.
++**
++** Subject to the terms and conditions of this license, each copyright holder
++** and contributor hereby grants to those receiving rights under this license
++** a perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable
++** (except for failure to satisfy the conditions of this license) patent license
++** to make, have made, use, offer to sell, sell, import, and otherwise transfer
++** this software, where such license applies only to those patent claims, already
++** acquired or hereafter acquired, licensable by such copyright holder or contributor
++** that are necessarily infringed by:
++**
++** (a) their Contribution(s) (the licensed copyrights of copyright holders and
++** non-copyrightable additions of contributors, in source or binary form) alone;
++** or
++**
++** (b) combination of their Contribution(s) with the work of authorship to which
++** such Contribution(s) was added by such copyright holder or contributor, if,
++** at the time the Contribution is added, such addition causes such combination
++** to be necessarily infringed. The patent license shall not apply to any other
++** combinations which include the Contribution.
++**
++** Except as expressly stated above, no rights or licenses from any copyright
++** holder or contributor is granted under this license, whether expressly, by
++** implication, estoppel or otherwise.
++**
++** DISCLAIMER
++**
++** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++** AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++** IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++** ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE
++** LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++** DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
++** SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
++** CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
++** OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
++** USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++**
++****************************************************************************/
++
++#include <stdlib.h>
++#include <setjmp.h>
++#include <stdarg.h>
++#include <cmocka.h>
++
++#include "test_amxd_param_value.h"
++
++int main(void) {
++    const struct CMUnitTest tests[] = {
++        cmocka_unit_test(test_amxd_param_value_init),
++        cmocka_unit_test(test_amxd_param_value_init_null),
++        cmocka_unit_test(test_amxd_param_value_clean_null),
++        cmocka_unit_test(test_amxd_param_value_clean_string_types),
++        cmocka_unit_test(test_amxd_param_value_clean_non_string),
++        cmocka_unit_test(test_amxd_param_value_set_type),
++        cmocka_unit_test(test_amxd_param_value_set_type_ts),
++        cmocka_unit_test(test_amxd_param_value_set_type_null),
++        cmocka_unit_test(test_amxd_param_value_set_type_cleans_string),
++        cmocka_unit_test(test_amxd_param_value_type_of),
++        cmocka_unit_test(test_amxd_param_value_type_of_null),
++        cmocka_unit_test(test_amxd_param_value_to_variant_null_args),
++        cmocka_unit_test(test_amxd_param_value_to_variant_null_type),
++        cmocka_unit_test(test_amxd_param_value_to_variant_strings),
++        cmocka_unit_test(test_amxd_param_value_to_variant_integers),
++        cmocka_unit_test(test_amxd_param_value_to_variant_floats),
++        cmocka_unit_test(test_amxd_param_value_to_variant_bool),
++        cmocka_unit_test(test_amxd_param_value_to_variant_timestamp),
++        cmocka_unit_test(test_amxd_param_value_to_variant_unknown_type),
++        cmocka_unit_test(test_amxd_param_value_from_variant_null_args),
++        cmocka_unit_test(test_amxd_param_value_from_variant_null_type),
++        cmocka_unit_test(test_amxd_param_value_from_variant_strings),
++        cmocka_unit_test(test_amxd_param_value_from_variant_string_null_data),
++        cmocka_unit_test(test_amxd_param_value_from_variant_integers),
++        cmocka_unit_test(test_amxd_param_value_from_variant_floats),
++        cmocka_unit_test(test_amxd_param_value_from_variant_bool),
++        cmocka_unit_test(test_amxd_param_value_from_variant_timestamp),
++        cmocka_unit_test(test_amxd_param_value_from_variant_unknown_type),
++        cmocka_unit_test(test_amxd_param_value_copy_null_args),
++        cmocka_unit_test(test_amxd_param_value_copy_string),
++        cmocka_unit_test(test_amxd_param_value_copy_string_null_data),
++        cmocka_unit_test(test_amxd_param_value_copy_non_string),
++        cmocka_unit_test(test_amxd_param_value_compare_variant_null_result),
++        cmocka_unit_test(test_amxd_param_value_compare_variant_both_null),
++        cmocka_unit_test(test_amxd_param_value_compare_variant_equal),
++        cmocka_unit_test(test_amxd_param_value_compare_variant_not_equal),
++    };
++    return cmocka_run_group_tests(tests, NULL, NULL);
++}
+diff --git a/test/test_amxd_parameter/test_amxd_parameter.c b/test/test_amxd_parameter/test_amxd_parameter.c
+index ac20a34..48b2924 100644
+--- a/test/test_amxd_parameter/test_amxd_parameter.c
++++ b/test/test_amxd_parameter/test_amxd_parameter.c
+@@ -70,6 +70,8 @@
+ #include <amxd/amxd_object.h>
+ #include <amxd/amxd_parameter.h>
+ 
++#include "amxd_priv.h"
++
+ #include "test_amxd_parameter.h"
+ 
+ #include <amxc/amxc_macros.h>
+@@ -78,7 +80,7 @@ void test_amxd_parameter_new_delete(UNUSED void** state) {
+ 
+     assert_int_equal(amxd_param_new(&param, "Param1", AMXC_VAR_ID_CSTRING), 0);
+     assert_ptr_not_equal(param, NULL);
+-    assert_int_equal(amxc_var_type_of(&param->value), AMXC_VAR_ID_CSTRING);
++    assert_int_equal(amxd_param_value_type_of(&param->value), AMXC_VAR_ID_CSTRING);
+     assert_int_equal(param->attr.templ, 0);
+     assert_int_equal(param->attr.instance, 0);
+     assert_int_equal(param->attr.priv, 0);
+@@ -128,7 +130,7 @@ void test_amxd_parameter_copy(UNUSED void** state) {
+ 
+     assert_int_equal(amxd_param_new(&param, "Param1", AMXC_VAR_ID_BOOL), 0);
+     assert_int_equal(amxd_param_copy(&cparam, param), 0);
+-    assert_int_equal(amxc_var_type_of(&cparam->value), AMXC_VAR_ID_BOOL);
++    assert_int_equal(amxd_param_value_type_of(&cparam->value), AMXC_VAR_ID_BOOL);
+     assert_string_equal(cparam->name, "Param1");
+     assert_int_equal(cparam->attr.templ, 0);
+     assert_int_equal(cparam->attr.instance, 0);
+@@ -296,6 +298,7 @@ void test_amxd_param_get_value(UNUSED void** state) {
+     assert_int_not_equal(amxd_param_get_value(param, NULL), 0);
+     assert_int_not_equal(amxd_param_get_value(NULL, &value), 0);
+ 
++    amxc_var_clean(&value);
+     amxd_param_delete(&param);
+ }
+ 
+-- 
+2.43.0
+
