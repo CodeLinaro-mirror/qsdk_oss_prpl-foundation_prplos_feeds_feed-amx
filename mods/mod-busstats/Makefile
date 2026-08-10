@@ -7,10 +7,10 @@ RAW_VERSION:=sah-next_v0.2.5
 PKG_VERSION:=$(if $(filter v0% v1% v2% v3% v4% v5% v6% v7% v8% v9%,$(RAW_VERSION)),$(patsubst v%,%,$(RAW_VERSION)),$(RAW_VERSION))
 SHORT_DESCRIPTION:=Bus statistics
 
-PKG_SOURCE:=mod-busstats-sah-next_v0.2.5.tar.gz
-PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/modules/amx_dm_mods/mod-busstats/-/archive/sah-next_v0.2.5
-PKG_HASH:=62e502e01369c8ff43a86332df1b1c1aadb4fe4ea8089bf46415bc861aa9dbd9
-PKG_BUILD_DIR:=$(BUILD_DIR)/mod-busstats-sah-next_v0.2.5
+PKG_SOURCE:=mod-busstats-b8fa2ddc28c06c68f8fbbc9999efcab8c52bd6fd.tar.gz
+PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/modules/amx_dm_mods/mod-busstats/-/archive/b8fa2ddc28c06c68f8fbbc9999efcab8c52bd6fd
+PKG_HASH:=177b16cfd5a764575ae444d23d0d335633e430b327202dd020161eabc6de1a51
+PKG_BUILD_DIR:=$(BUILD_DIR)/mod-busstats-b8fa2ddc28c06c68f8fbbc9999efcab8c52bd6fd
 PKG_MAINTAINER:=Soft At Home <support.opensource@softathome.com>
 PKG_LICENSE:=BSD-2-Clause-Patent
 PKG_LICENSE_FILES:=LICENSE

@@ -7,10 +7,10 @@ RAW_VERSION:=sah-next_v0.7.2
 PKG_VERSION:=$(if $(filter v0% v1% v2% v3% v4% v5% v6% v7% v8% v9%,$(RAW_VERSION)),$(patsubst v%,%,$(RAW_VERSION)),$(RAW_VERSION))
 SHORT_DESCRIPTION:=LUA AMX Bindings 
 
-PKG_SOURCE:=lua-amx-sah-next_v0.7.2.tar.gz
-PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/bindings/lua/lua-amx/-/archive/sah-next_v0.7.2
-PKG_HASH:=d7455309b5300a888d382e0b2ce3b242e3ee5f1978bfd2788e996ed38df5d58a
-PKG_BUILD_DIR:=$(BUILD_DIR)/lua-amx-sah-next_v0.7.2
+PKG_SOURCE:=lua-amx-558f78971127e831904d0dd33f5de5d4fc0d346d.tar.gz
+PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/bindings/lua/lua-amx/-/archive/558f78971127e831904d0dd33f5de5d4fc0d346d
+PKG_HASH:=e0feca5c5471fa8e312fec8308134ff91f7876b1c7c3b5fd1cc25116c02b884d
+PKG_BUILD_DIR:=$(BUILD_DIR)/lua-amx-558f78971127e831904d0dd33f5de5d4fc0d346d
 PKG_MAINTAINER:=Soft At Home <support.opensource@softathome.com>
 PKG_LICENSE:=BSD-2-Clause-Patent
 PKG_LICENSE_FILES:=LICENSE

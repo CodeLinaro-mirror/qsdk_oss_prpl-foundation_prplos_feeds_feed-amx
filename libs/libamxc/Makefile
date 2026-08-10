@@ -6,10 +6,10 @@ PKG_NAME:=libamxc
 PKG_VERSION:=sah-next_v2.10.3
 SHORT_DESCRIPTION:=library providing generic reusable data containers
 
-PKG_SOURCE:=libamxc-sah-next_v2.10.3.tar.gz
-PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/libraries/libamxc/-/archive/sah-next_v2.10.3
-PKG_HASH:=393c4b940b9c02c0b45a501bb3f6dba63a7ab0861ee07d36bcaac3ee6a63e3b4
-PKG_BUILD_DIR:=$(BUILD_DIR)/libamxc-sah-next_v2.10.3
+PKG_SOURCE:=libamxc-94cb6b400a2c4054b32cd26ff01d64705fc64560.tar.gz
+PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/libraries/libamxc/-/archive/94cb6b400a2c4054b32cd26ff01d64705fc64560
+PKG_HASH:=43d0c6dba919e14418bba80f00ff9e34e2d75f2189522e430700a90d3c33ff6e
+PKG_BUILD_DIR:=$(BUILD_DIR)/libamxc-94cb6b400a2c4054b32cd26ff01d64705fc64560
 PKG_MAINTAINER:=Soft At Home <support.opensource@softathome.com>
 PKG_LICENSE:=BSD-2-Clause-Patent
 PKG_LICENSE_FILES:=LICENSE

@@ -7,10 +7,10 @@ RAW_VERSION:=sah-next_v0.21.0
 PKG_VERSION:=$(if $(filter v0% v1% v2% v3% v4% v5% v6% v7% v8% v9%,$(RAW_VERSION)),$(patsubst v%,%,$(RAW_VERSION)),$(RAW_VERSION))
 SHORT_DESCRIPTION:=Bus Agnostic Command Line Interface
 
-PKG_SOURCE:=mod-ba-cli-sah-next_v0.21.0.tar.gz
-PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/modules/amx_cli/mod-ba-cli/-/archive/sah-next_v0.21.0
-PKG_HASH:=0f0f8b7bbb5aa40644e1a7e70421506c9dd1df89a40c6c438b7df3f64719a044
-PKG_BUILD_DIR:=$(BUILD_DIR)/mod-ba-cli-sah-next_v0.21.0
+PKG_SOURCE:=mod-ba-cli-dafe4ecce33db5b78f6744dd720a79c99219577a.tar.gz
+PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/modules/amx_cli/mod-ba-cli/-/archive/dafe4ecce33db5b78f6744dd720a79c99219577a
+PKG_HASH:=f93859402559cb31c3e2e2dad68fb7dcb21b35e35b8adab4a6232d7ec4374440
+PKG_BUILD_DIR:=$(BUILD_DIR)/mod-ba-cli-dafe4ecce33db5b78f6744dd720a79c99219577a
 PKG_MAINTAINER:=Soft At Home <support.opensource@softathome.com>
 PKG_LICENSE:=BSD-2-Clause-Patent
 PKG_LICENSE_FILES:=LICENSE

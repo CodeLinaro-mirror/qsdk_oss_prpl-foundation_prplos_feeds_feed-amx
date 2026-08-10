@@ -6,10 +6,10 @@ PKG_NAME:=libamxm
 PKG_VERSION:=sah-next_v0.1.2
 SHORT_DESCRIPTION:=modularity API, simplifies creation of plug-ins
 
-PKG_SOURCE:=libamxm-sah-next_v0.1.2.tar.gz
-PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/libraries/libamxm/-/archive/sah-next_v0.1.2
-PKG_HASH:=416a3929131eb132fb4de33f4783b9bb9a191cf6de986217a0237f2def1535d8
-PKG_BUILD_DIR:=$(BUILD_DIR)/libamxm-sah-next_v0.1.2
+PKG_SOURCE:=libamxm-3c72039cb8463f0b82a2133bd29c51cb458ea0a3.tar.gz
+PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/libraries/libamxm/-/archive/3c72039cb8463f0b82a2133bd29c51cb458ea0a3
+PKG_HASH:=70f2415e969c8b6c0bd3e08cc2d633678bb1d61abad84b5e746ce2cb5121a854
+PKG_BUILD_DIR:=$(BUILD_DIR)/libamxm-3c72039cb8463f0b82a2133bd29c51cb458ea0a3
 PKG_MAINTAINER:=Soft At Home <support.opensource@softathome.com>
 PKG_LICENSE:=BSD-2-Clause-Patent
 PKG_LICENSE_FILES:=LICENSE

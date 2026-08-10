@@ -6,10 +6,10 @@ PKG_NAME:=amx-cli
 PKG_VERSION:=sah-next_v0.5.8
 SHORT_DESCRIPTION:=Ambiorix interactive CLI
 
-PKG_SOURCE:=amx-cli-sah-next_v0.5.8.tar.gz
-PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/applications/amx-cli/-/archive/sah-next_v0.5.8
-PKG_HASH:=9dd765e4fcaf807fbcf47d0466fc97c90ba3c144f290a0738bde6ed81a3f7d59
-PKG_BUILD_DIR:=$(BUILD_DIR)/amx-cli-sah-next_v0.5.8
+PKG_SOURCE:=amx-cli-7fb37bb8e31cf47f8de684992090fd2cf45ae10e.tar.gz
+PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/applications/amx-cli/-/archive/7fb37bb8e31cf47f8de684992090fd2cf45ae10e
+PKG_HASH:=13bf7edcb4ec438ded2657a1cf18537d852f2504eae9f0a308b246add35dc8a1
+PKG_BUILD_DIR:=$(BUILD_DIR)/amx-cli-7fb37bb8e31cf47f8de684992090fd2cf45ae10e
 PKG_MAINTAINER:=Soft At Home <support.opensource@softathome.com>
 PKG_LICENSE:=BSD-2-Clause-Patent
 PKG_LICENSE_FILES:=LICENSE

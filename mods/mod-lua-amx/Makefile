@@ -6,10 +6,10 @@ PKG_NAME:=mod-lua-amx
 PKG_VERSION:=sah-next_v0.1.12
 SHORT_DESCRIPTION:=Ambiorix LUA extension
 
-PKG_SOURCE:=mod-lua-amx-sah-next_v0.1.12.tar.gz
-PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/bindings/lua/mod-lua-amx/-/archive/sah-next_v0.1.12
-PKG_HASH:=50cd365441808544c31e86ae6c76693cf0277dffbae06e60e94b1dd906f0a7a5
-PKG_BUILD_DIR:=$(BUILD_DIR)/mod-lua-amx-sah-next_v0.1.12
+PKG_SOURCE:=mod-lua-amx-5a45da3bf4b3c2747445d9dd4f8c17836548209e.tar.gz
+PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/bindings/lua/mod-lua-amx/-/archive/5a45da3bf4b3c2747445d9dd4f8c17836548209e
+PKG_HASH:=0fa3d9137aa1bb9ffd385cde8a6e4623d486f57c7410551d500626fe700ab70a
+PKG_BUILD_DIR:=$(BUILD_DIR)/mod-lua-amx-5a45da3bf4b3c2747445d9dd4f8c17836548209e
 PKG_MAINTAINER:=Soft At Home <support.opensource@softathome.com>
 PKG_LICENSE:=BSD-2-Clause-Patent
 PKG_LICENSE_FILES:=LICENSE
