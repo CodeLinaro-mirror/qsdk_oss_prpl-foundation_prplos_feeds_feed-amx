@@ -7,10 +7,10 @@ RAW_VERSION:=sah-next-4.1_v0.4.0
 PKG_VERSION:=$(if $(filter v0% v1% v2% v3% v4% v5% v6% v7% v8% v9%,$(RAW_VERSION)),$(patsubst v%,%,$(RAW_VERSION)),$(RAW_VERSION))
 SHORT_DESCRIPTION:=The ACL manager monitors ACL directory and merges ACL files
 
-PKG_SOURCE:=acl-manager-sah-next-4.1_v0.4.0.tar.gz
-PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/applications/acl-manager/-/archive/sah-next-4.1_v0.4.0
-PKG_HASH:=71684f1d9779252da073f63238f7d6511bf4f006aaa3f6607619672bb1720682
-PKG_BUILD_DIR:=$(BUILD_DIR)/acl-manager-sah-next-4.1_v0.4.0
+PKG_SOURCE:=acl-manager-eeaafee09c719908082d3fdfddc58504f44ae0a8.tar.gz
+PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/applications/acl-manager/-/archive/eeaafee09c719908082d3fdfddc58504f44ae0a8
+PKG_HASH:=9b402c17d37af90e66940d9e9560aaf8f105f2d9313ff74129a961f7837e9629
+PKG_BUILD_DIR:=$(BUILD_DIR)/acl-manager-eeaafee09c719908082d3fdfddc58504f44ae0a8
 PKG_MAINTAINER:=Soft At Home <support.opensource@softathome.com>
 PKG_LICENSE:=BSD-2-Clause-Patent
 PKG_LICENSE_FILES:=LICENSE

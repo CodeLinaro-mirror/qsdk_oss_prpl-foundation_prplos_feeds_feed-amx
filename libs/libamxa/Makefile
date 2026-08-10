@@ -7,10 +7,10 @@ RAW_VERSION:=sah-next_v0.14.0
 PKG_VERSION:=$(if $(filter v0% v1% v2% v3% v4% v5% v6% v7% v8% v9%,$(RAW_VERSION)),$(patsubst v%,%,$(RAW_VERSION)),$(RAW_VERSION))
 SHORT_DESCRIPTION:=Access control verification
 
-PKG_SOURCE:=libamxa-sah-next_v0.14.0.tar.gz
-PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/libraries/libamxa/-/archive/sah-next_v0.14.0
-PKG_HASH:=b3eb75e622ffed4264bd1f6e43e03105dd8e2250293194f55c74468189f2a2ca
-PKG_BUILD_DIR:=$(BUILD_DIR)/libamxa-sah-next_v0.14.0
+PKG_SOURCE:=libamxa-183538675d6565b01be133bfaa5f7eee90bee620.tar.gz
+PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/libraries/libamxa/-/archive/183538675d6565b01be133bfaa5f7eee90bee620
+PKG_HASH:=7c89377148a1d96da8c3cdaec17ae33c8f6e9429c6fd2a1ab387c1159f897b0d
+PKG_BUILD_DIR:=$(BUILD_DIR)/libamxa-183538675d6565b01be133bfaa5f7eee90bee620
 PKG_MAINTAINER:=Soft At Home <support.opensource@softathome.com>
 PKG_LICENSE:=BSD-2-Clause-Patent
 PKG_LICENSE_FILES:=LICENSE

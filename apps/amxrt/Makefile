@@ -7,10 +7,10 @@ RAW_VERSION:=sah-next_v2.3.2
 PKG_VERSION:=$(if $(filter v0% v1% v2% v3% v4% v5% v6% v7% v8% v9%,$(RAW_VERSION)),$(patsubst v%,%,$(RAW_VERSION)),$(RAW_VERSION))
 SHORT_DESCRIPTION:=Data model runtime
 
-PKG_SOURCE:=amxrt-sah-next_v2.3.2.tar.gz
-PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/applications/amxrt/-/archive/sah-next_v2.3.2
-PKG_HASH:=87a5b4d05138fc6a521d82b8352c50aede56c4445798fcf98305ddd0e05f4df5
-PKG_BUILD_DIR:=$(BUILD_DIR)/amxrt-sah-next_v2.3.2
+PKG_SOURCE:=amxrt-5f5d475184a8b6a77303d0ead3c89db4922808e8.tar.gz
+PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/applications/amxrt/-/archive/5f5d475184a8b6a77303d0ead3c89db4922808e8
+PKG_HASH:=1971db7cb979d46bd892512e7c41194b1727d5bfe1f747f64e3600e7fd59e07e
+PKG_BUILD_DIR:=$(BUILD_DIR)/amxrt-5f5d475184a8b6a77303d0ead3c89db4922808e8
 PKG_MAINTAINER:=Soft At Home <support.opensource@softathome.com>
 PKG_LICENSE:=BSD-2-Clause-Patent
 PKG_LICENSE_FILES:=LICENSE
