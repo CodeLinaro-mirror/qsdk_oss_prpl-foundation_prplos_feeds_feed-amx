@@ -3,14 +3,15 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libamxj
-RAW_VERSION:=sah-next_v1.1.4
+RAW_VERSION:=dev_amx_v11
 PKG_VERSION:=$(if $(filter v0% v1% v2% v3% v4% v5% v6% v7% v8% v9%,$(RAW_VERSION)),$(patsubst v%,%,$(RAW_VERSION)),$(RAW_VERSION))
 SHORT_DESCRIPTION:=JSON parser & generator using yajl and libamxc variants
 
-PKG_SOURCE:=libamxj-e1e58bbe99ad1faec951f4b012354c0dffa4ba8d.tar.gz
-PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/libraries/libamxj/-/archive/e1e58bbe99ad1faec951f4b012354c0dffa4ba8d
-PKG_HASH:=decba27769689bf0d3a4679533b2b893b0f567034d08aeaa2702c51a53dc4ddc
-PKG_BUILD_DIR:=$(BUILD_DIR)/libamxj-e1e58bbe99ad1faec951f4b012354c0dffa4ba8d
+PKG_SOURCE_PROTO:=git
+PKG_SOURCE_VERSION:=dev_amx_v11
+PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/libraries/libamxj.git
+PKG_MIRROR_HASH:=skip
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_MAINTAINER:=Soft At Home <support.opensource@softathome.com>
 PKG_LICENSE:=BSD-2-Clause-Patent
 PKG_LICENSE_FILES:=LICENSE

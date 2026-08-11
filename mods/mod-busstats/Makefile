@@ -3,14 +3,15 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=mod-busstats
-RAW_VERSION:=sah-next_v0.2.5
+RAW_VERSION:=dev_amx_v11
 PKG_VERSION:=$(if $(filter v0% v1% v2% v3% v4% v5% v6% v7% v8% v9%,$(RAW_VERSION)),$(patsubst v%,%,$(RAW_VERSION)),$(RAW_VERSION))
 SHORT_DESCRIPTION:=Bus statistics
 
-PKG_SOURCE:=mod-busstats-b8fa2ddc28c06c68f8fbbc9999efcab8c52bd6fd.tar.gz
-PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/modules/amx_dm_mods/mod-busstats/-/archive/b8fa2ddc28c06c68f8fbbc9999efcab8c52bd6fd
-PKG_HASH:=177b16cfd5a764575ae444d23d0d335633e430b327202dd020161eabc6de1a51
-PKG_BUILD_DIR:=$(BUILD_DIR)/mod-busstats-b8fa2ddc28c06c68f8fbbc9999efcab8c52bd6fd
+PKG_SOURCE_PROTO:=git
+PKG_SOURCE_VERSION:=dev_amx_v11
+PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/modules/amx_dm_mods/mod-busstats.git
+PKG_MIRROR_HASH:=skip
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_MAINTAINER:=Soft At Home <support.opensource@softathome.com>
 PKG_LICENSE:=BSD-2-Clause-Patent
 PKG_LICENSE_FILES:=LICENSE

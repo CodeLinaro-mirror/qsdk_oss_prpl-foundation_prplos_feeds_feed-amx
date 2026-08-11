@@ -3,14 +3,15 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libamxb
-RAW_VERSION:=sah-next_v4.22.0
+RAW_VERSION:=dev_amx_v11
 PKG_VERSION:=$(if $(filter v0% v1% v2% v3% v4% v5% v6% v7% v8% v9%,$(RAW_VERSION)),$(patsubst v%,%,$(RAW_VERSION)),$(RAW_VERSION))
 SHORT_DESCRIPTION:=Bus agnostic C API (mediator)
 
-PKG_SOURCE:=libamxb-666c9e1b28f5de2f226f606d438ffa849bc59729.tar.gz
-PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/libraries/libamxb/-/archive/666c9e1b28f5de2f226f606d438ffa849bc59729
-PKG_HASH:=9591d6613f64c148132327585a3796199377ef9b1a898c18fd7f0d4d15c17d0c
-PKG_BUILD_DIR:=$(BUILD_DIR)/libamxb-666c9e1b28f5de2f226f606d438ffa849bc59729
+PKG_SOURCE_PROTO:=git
+PKG_SOURCE_VERSION:=dev_amx_v11
+PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/libraries/libamxb.git
+PKG_MIRROR_HASH:=skip
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_MAINTAINER:=Soft At Home <support.opensource@softathome.com>
 PKG_LICENSE:=BSD-2-Clause-Patent
 PKG_LICENSE_FILES:=LICENSE

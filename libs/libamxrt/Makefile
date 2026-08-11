@@ -3,14 +3,15 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libamxrt
-RAW_VERSION:=sah-next_v0.9.1
+RAW_VERSION:=dev_amx_v11
 PKG_VERSION:=$(if $(filter v0% v1% v2% v3% v4% v5% v6% v7% v8% v9%,$(RAW_VERSION)),$(patsubst v%,%,$(RAW_VERSION)),$(RAW_VERSION))
 SHORT_DESCRIPTION:=Ambiorix Run Time API
 
-PKG_SOURCE:=libamxrt-da4fb7fea1bb523b572d9ad1feca435404bfee5c.tar.gz
-PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/libraries/libamxrt/-/archive/da4fb7fea1bb523b572d9ad1feca435404bfee5c
-PKG_HASH:=8cbb3d7813a04949e44459b701445a90247edf031eaea1aa5d4955c32c1a962e
-PKG_BUILD_DIR:=$(BUILD_DIR)/libamxrt-da4fb7fea1bb523b572d9ad1feca435404bfee5c
+PKG_SOURCE_PROTO:=git
+PKG_SOURCE_VERSION:=dev_amx_v11
+PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/libraries/libamxrt.git
+PKG_MIRROR_HASH:=skip
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_MAINTAINER:=Soft At Home <support.opensource@softathome.com>
 PKG_LICENSE:=BSD-2-Clause-Patent
 PKG_LICENSE_FILES:=LICENSE
