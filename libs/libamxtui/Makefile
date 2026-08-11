@@ -3,13 +3,14 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libamxtui
-PKG_VERSION:=sah-next_v0.1.8
+PKG_VERSION:=dev_amx_v11
 SHORT_DESCRIPTION:=Libamxtui is a library that provides terminal user interface widgets based on ncurses
 
-PKG_SOURCE:=libamxtui-c3c6d5a55a73ecb6263eb82eef83d77b51a08c7f.tar.gz
-PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/amxlab/tui/libraries/libamxtui/-/archive/c3c6d5a55a73ecb6263eb82eef83d77b51a08c7f
-PKG_HASH:=c7bd2b4a327f77377d789e8496aff6d37a4694ed0fcd57527179f7300adf8646
-PKG_BUILD_DIR:=$(BUILD_DIR)/libamxtui-c3c6d5a55a73ecb6263eb82eef83d77b51a08c7f
+PKG_SOURCE_PROTO:=git
+PKG_SOURCE_VERSION:=dev_amx_v11
+PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/amxlab/tui/libraries/libamxtui.git
+PKG_MIRROR_HASH:=skip
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_MAINTAINER:=Soft At Home <support.opensource@softathome.com>
 PKG_LICENSE:=BSD-2-Clause-Patent
 PKG_LICENSE_FILES:=LICENSE
