@@ -8,9 +8,9 @@ PKG_VERSION:=$(if $(filter v0% v1% v2% v3% v4% v5% v6% v7% v8% v9%,$(RAW_VERSION
 SHORT_DESCRIPTION:=Bus agnostic C API (mediator)
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_VERSION:=dev_amx_v11
+PKG_SOURCE_VERSION:=215ca9d7fa032a942efb1b8ce91a23d8e212fb43
 PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/libraries/libamxb.git
-PKG_MIRROR_HASH:=skip
+PKG_MIRROR_HASH:=58deb0bfdb3840454c71525d4e227499c4ceb3ba700527a3b0b6dd8cb26687c4
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_MAINTAINER:=Soft At Home <support.opensource@softathome.com>
 PKG_LICENSE:=BSD-2-Clause-Patent

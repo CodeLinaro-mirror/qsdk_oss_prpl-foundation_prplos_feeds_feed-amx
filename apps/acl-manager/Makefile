@@ -8,9 +8,9 @@ PKG_VERSION:=$(if $(filter v0% v1% v2% v3% v4% v5% v6% v7% v8% v9%,$(RAW_VERSION
 SHORT_DESCRIPTION:=The ACL manager monitors ACL directory and merges ACL files
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_VERSION:=dev_amx_v11
+PKG_SOURCE_VERSION:=94ca16a48c13b0947894f4ca4365a598343e7aeb
 PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/applications/acl-manager.git
-PKG_MIRROR_HASH:=skip
+PKG_MIRROR_HASH:=4cda37955d737ba8b6b801695bcf34e34ac12730a0a3a231e954cb0b9df41b32
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_MAINTAINER:=Soft At Home <support.opensource@softathome.com>
 PKG_LICENSE:=BSD-2-Clause-Patent

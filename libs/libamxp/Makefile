@@ -7,9 +7,9 @@ PKG_VERSION:=dev_amx_v11
 SHORT_DESCRIPTION:=Common patterns implementation
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_VERSION:=dev_amx_v11
+PKG_SOURCE_VERSION:=0264b1cfd7680a2fe81b7970529d150d94abbec5
 PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/libraries/libamxp.git
-PKG_MIRROR_HASH:=skip
+PKG_MIRROR_HASH:=339beca02a6a71fc96fa9697029d96e6afdaa93e2e815159b160e22ebbfc883a
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_MAINTAINER:=Soft At Home <support.opensource@softathome.com>
 PKG_LICENSE:=BSD-2-Clause-Patent

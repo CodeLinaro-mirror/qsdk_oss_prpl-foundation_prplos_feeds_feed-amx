@@ -7,9 +7,9 @@ PKG_VERSION:=dev_amx_v11
 SHORT_DESCRIPTION:=Libamxtui is a library that provides terminal user interface widgets based on ncurses
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_VERSION:=dev_amx_v11
+PKG_SOURCE_VERSION:=330eb5ca213a4d98e9458f075d922bcd02da0756
 PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/amxlab/tui/libraries/libamxtui.git
-PKG_MIRROR_HASH:=skip
+PKG_MIRROR_HASH:=c34f5541dfc05d422bfb629483a778a9fa59c32b591e0c24cecb0ec5ea494c31
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_MAINTAINER:=Soft At Home <support.opensource@softathome.com>
 PKG_LICENSE:=BSD-2-Clause-Patent

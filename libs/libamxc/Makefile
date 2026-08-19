@@ -7,9 +7,9 @@ PKG_VERSION:=dev_amx_v11
 SHORT_DESCRIPTION:=library providing generic reusable data containers
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_VERSION:=dev_amx_v11
+PKG_SOURCE_VERSION:=e078c08dc998de2aa0d280d02d10f44e0c986ed0
 PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/libraries/libamxc.git
-PKG_MIRROR_HASH:=skip
+PKG_MIRROR_HASH:=c2d73b7bcfefa053e83dc416631cae1a84b9ea4ae07352ada424e32b7f3c6b9b
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_MAINTAINER:=Soft At Home <support.opensource@softathome.com>
 PKG_LICENSE:=BSD-2-Clause-Patent

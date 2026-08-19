@@ -8,9 +8,9 @@ PKG_VERSION:=$(if $(filter v0% v1% v2% v3% v4% v5% v6% v7% v8% v9%,$(RAW_VERSION
 SHORT_DESCRIPTION:=Data model runtime
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_VERSION:=dev_amx_v11
+PKG_SOURCE_VERSION:=c99d123ccd406f2f0420c3daed69244cf6c30b31
 PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/applications/amxrt.git
-PKG_MIRROR_HASH:=skip
+PKG_MIRROR_HASH:=9c30399c298343365aa19f86528c0e0ffd94d03e1d1d6bf97dc02d8514b91da2
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_MAINTAINER:=Soft At Home <support.opensource@softathome.com>
 PKG_LICENSE:=BSD-2-Clause-Patent

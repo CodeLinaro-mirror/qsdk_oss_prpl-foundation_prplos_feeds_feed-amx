@@ -7,9 +7,9 @@ PKG_VERSION:=dev_amx_v11
 SHORT_DESCRIPTION:=Ambiorix interactive CLI
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_VERSION:=dev_amx_v11
+PKG_SOURCE_VERSION:=7f7f06cac3838e1c65a6050fd7d5ee800f8b79e7
 PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/applications/amx-cli.git
-PKG_MIRROR_HASH:=skip
+PKG_MIRROR_HASH:=7ad38530b72a4b9f2c89fa5c3a463b6c5007a95b39f4312b47fce8dc50a3fc55
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_MAINTAINER:=Soft At Home <support.opensource@softathome.com>
 PKG_LICENSE:=BSD-2-Clause-Patent

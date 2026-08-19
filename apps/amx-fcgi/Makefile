@@ -8,9 +8,9 @@ PKG_VERSION:=$(if $(filter v0% v1% v2% v3% v4% v5% v6% v7% v8% v9%,$(RAW_VERSION
 SHORT_DESCRIPTION:=Ambiorix Fast CGI app for web-servers
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_VERSION:=dev_amx_v11
+PKG_SOURCE_VERSION:=446b99cf032bbcb8f2e9cd651f809fc48b93e026
 PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/applications/amx-fcgi.git
-PKG_MIRROR_HASH:=skip
+PKG_MIRROR_HASH:=2fe125704fd22e2649fd0756cdecfda2406f6bb15bd974634006302e941b1165
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_MAINTAINER:=Soft At Home <support.opensource@softathome.com>
 PKG_LICENSE:=BSD-2-Clause-Patent

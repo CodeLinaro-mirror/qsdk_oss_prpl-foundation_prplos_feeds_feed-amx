@@ -8,9 +8,9 @@ PKG_VERSION:=$(if $(filter v0% v1% v2% v3% v4% v5% v6% v7% v8% v9%,$(RAW_VERSION
 SHORT_DESCRIPTION:=Bus Agnostic Command Line Interface
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_VERSION:=dev_amx_v11
+PKG_SOURCE_VERSION:=eadc720ee6aa31da6d547c02a8aab85f49b33878
 PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/modules/amx_cli/mod-ba-cli.git
-PKG_MIRROR_HASH:=skip
+PKG_MIRROR_HASH:=2c66d99549a4ea1e1d657253adb71199d5a74e9c1c133d85e193f30899e8e7fd
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_MAINTAINER:=Soft At Home <support.opensource@softathome.com>
 PKG_LICENSE:=BSD-2-Clause-Patent

@@ -7,9 +7,9 @@ PKG_VERSION:=dev_amx_v11
 SHORT_DESCRIPTION:=Ambiorix LUA extension
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_VERSION:=dev_amx_v11
+PKG_SOURCE_VERSION:=72ab5fb4e44e357db6ecd61d8d3b7e7d5f4e9eda
 PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/bindings/lua/mod-lua-amx.git
-PKG_MIRROR_HASH:=skip
+PKG_MIRROR_HASH:=7b3831ae208b2207e81fb47d65023e200893d7cbb4e367171b8bd420badb6119
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_MAINTAINER:=Soft At Home <support.opensource@softathome.com>
 PKG_LICENSE:=BSD-2-Clause-Patent

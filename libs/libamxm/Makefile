@@ -7,9 +7,9 @@ PKG_VERSION:=dev_amx_v11
 SHORT_DESCRIPTION:=modularity API, simplifies creation of plug-ins
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_VERSION:=dev_amx_v11
+PKG_SOURCE_VERSION:=eee2ad041098394ee66f2c770dfb509ba808a443
 PKG_SOURCE_URL:=https://gitlab.com/prpl-foundation/components/ambiorix/libraries/libamxm.git
-PKG_MIRROR_HASH:=skip
+PKG_MIRROR_HASH:=fb6a7bceb1ed4f26de7ce230145cc364aaadb08f9eb66bd499787da302eda9ab
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_MAINTAINER:=Soft At Home <support.opensource@softathome.com>
 PKG_LICENSE:=BSD-2-Clause-Patent
